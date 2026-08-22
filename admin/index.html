@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin PDF Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter',sans-serif; background:#0f172a; color:#e2e8f0; min-height:100vh; }
+.container { max-width:1200px; margin:0 auto; padding:24px; }
+header { display:flex; justify-content:space-between; align-items:center; margin-bottom:32px; padding-bottom:20px; border-bottom:1px solid #1e293b; flex-wrap:wrap; gap:12px; }
+h1 { font-size:28px; font-weight:700; background:linear-gradient(135deg,#60a5fa,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:32px; }
+.stat-card { background:#1e293b; border:1px solid #334155; border-radius:16px; padding:20px; transition:all .3s ease; }
+.stat-card:hover { border-color:#60a5fa; transform:translateY(-2px); }
+.stat-label { font-size:13px; color:#94a3b8; text-transform:uppercase; letter-spacing:.5px; margin-bottom:8px; }
+.stat-value { font-size:32px; font-weight:700; color:#f8fafc; }
+.upload-zone { border:2px dashed #475569; border-radius:16px; padding:48px 24px; text-align:center; margin-bottom:32px; transition:all .3s ease; cursor:pointer; background:#1e293b; }
+.upload-zone:hover,.upload-zone.dragover { border-color:#60a5fa; background:#1e293b80; }
+.upload-zone .icon { font-size:48px; margin-bottom:16px; display:block; }
+.upload-zone p { color:#94a3b8; font-size:14px; }
+.upload-zone .btn-upload { margin-top:16px; background:linear-gradient(135deg,#3b82f6,#8b5cf6); color:#fff; border:none; padding:12px 28px; border-radius:10px; font-weight:600; cursor:pointer; font-size:14px; transition:all .3s ease; }
+.upload-zone .btn-upload:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(59,130,246,0.3); }
+input[type="file"] { display:none; }
+.pdf-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:20px; }
+.pdf-card { background:#1e293b; border:1px solid #334155; border-radius:16px; overflow:hidden; transition:all .3s ease; }
+.pdf-card:hover { border-color:#475569; transform:translateY(-4px); box-shadow:0 20px 40px rgba(0,0,0,0.3); }
+.pdf-preview { height:140px; background:linear-gradient(135deg,#1e293b,#0f172a); display:flex; align-items:center; justify-content:center; position:relative; }
+.pdf-icon { font-size:56px; z-index:1; }
+.pdf-info { padding:20px; }
+.pdf-title { font-size:16px; font-weight:600; color:#f1f5f9; margin-bottom:6px; word-break:break-word; }
+.pdf-meta { font-size:12px; color:#64748b; margin-bottom:12px; display:flex; gap:12px; flex-wrap:wrap; }
+.pdf-desc { font-size:13px; color:#94a3b8; margin-bottom:16px; line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.pdf-actions { display:flex; gap:8px; flex-wrap:wrap; }
+.btn { padding:8px 16px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; border:none; transition:all .2s ease; text-decoration:none; display:inline-flex; align-items:center; gap:6px; }
+.btn-primary { background:#3b82f6; color:#fff; }
+.btn-primary:hover { background:#2563eb; }
+.btn-secondary { background:#334155; color:#e2e8f0; }
+.btn-secondary:hover { background:#475569; }
+.btn-danger { background:#ef4444; color:#fff; }
+.btn-danger:hover { background:#dc2626; }
+.empty-state { text-align:center; padding:80px 24px; color:#64748b; grid-column:1/-1; }
+.empty-state .big-icon { font-size:64px; margin-bottom:16px; opacity:.5; }
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; z-index:1000; padding:24px; }
+.modal-overlay.active { display:flex; }
+.modal { background:#1e293b; border:1px solid #334155; border-radius:20px; max-width:500px; width:100%; max-height:90vh; overflow-y:auto; }
+.modal-header { padding:24px 24px 0; display:flex; justify-content:space-between; align-items:center; }
+.modal-header h3 { font-size:18px; font-weight:600; }
+.modal-close { background:none; border:none; color:#64748b; font-size:24px; cursor:pointer; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; transition:all .2s; }
+.modal-close:hover { background:#334155; color:#e2e8f0; }
+.modal-body { padding:20px 24px; }
+.form-group { margin-bottom:16px; }
+.form-group label { display:block; font-size:13px; font-weight:500; color:#94a3b8; margin-bottom:6px; }
+.form-group input,.form-group textarea { width:100%; background:#0f172a; border:1px solid #334155; border-radius:10px; padding:12px 16px; color:#e2e8f0; font-size:14px; font-family:inherit; transition:all .2s; }
+.form-group input:focus,.form-group textarea:focus { outline:none; border-color:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,0.1); }
+.form-group textarea { resize:vertical; min-height:80px; }
+.modal-footer { padding:0 24px 24px; display:flex; justify-content:flex-end; gap:10px; }
+.toast { position:fixed; bottom:24px; right:24px; background:#1e293b; border:1px solid #334155; border-radius:12px; padding:16px 20px; display:flex; align-items:center; gap:12px; box-shadow:0 20px 40px rgba(0,0,0,0.4); transform:translateY(100px); opacity:0; transition:all .4s cubic-bezier(0.175,0.885,0.32,1.275); z-index:2000; }
+.toast.show { transform:translateY(0); opacity:1; }
+.toast.success { border-color:#10b981; }
+.toast.error { border-color:#ef4444; }
+.toast-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px; }
+.toast.success .toast-icon { background:#10b98120; color:#10b981; }
+.toast.error .toast-icon { background:#ef444420; color:#ef4444; }
+.search-bar { margin-bottom:24px; }
+.search-bar input { width:100%; max-width:400px; background:#1e293b; border:1px solid #334155; border-radius:12px; padding:12px 16px 12px 44px; color:#e2e8f0; font-size:14px; border-image:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:14px center; background-size:18px; }
+.search-bar input:focus { outline:none; border-color:#3b82f6; }
+.progress-bar { width:100%; height:4px; background:#334155; border-radius:2px; margin-top:12px; overflow:hidden; display:none; }
+.progress-bar.active { display:block; }
+.progress-bar-fill { height:100%; background:linear-gradient(90deg,#3b82f6,#8b5cf6); border-radius:2px; width:0%; transition:width .3s ease; }
+.url-box { background:#0f172a; border:1px solid #334155; border-radius:10px; padding:12px; display:flex; align-items:center; gap:10px; margin-top:12px; }
+.url-box input { flex:1; background:transparent; border:none; color:#60a5fa; font-size:13px; font-family:monospace; outline:none; }
+.url-box button { background:#334155; border:none; color:#e2e8f0; padding:6px 12px; border-radius:6px; font-size:12px; cursor:pointer; transition:all .2s; }
+.url-box button:hover { background:#475569; }
+.badge { display:inline-flex; align-items:center; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+.badge-views { background:#3b82f620; color:#60a5fa; }
+.loading { display:inline-block; width:20px; height:20px; border:2px solid #334155; border-top-color:#3b82f6; border-radius:50%; animation:spin .8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.spinner-overlay { position:fixed; inset:0; background:rgba(15,23,42,0.8); display:none; align-items:center; justify-content:center; z-index:3000; }
+.spinner-overlay.active { display:flex; }
+@media(max-width:640px) { .pdf-grid { grid-template-columns:1fr; } header { flex-direction:column; gap:12px; align-items:flex-start; } }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>PDF Manager</h1>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <button class="btn btn-secondary" onclick="refreshData()">&#128260; Rafraichir</button>
+      <a href="/" class="btn btn-primary">&#127760; Voir le site public</a>
+    </div>
+  </header>
+
+  <div class="stats" id="stats">
+    <div class="stat-card"><div class="stat-label">Documents</div><div class="stat-value" id="stat-total">0</div></div>
+    <div class="stat-card"><div class="stat-label">Taille totale</div><div class="stat-value" id="stat-size">0 MB</div></div>
+    <div class="stat-card"><div class="stat-label">Vues totales</div><div class="stat-value" id="stat-views">0</div></div>
+  </div>
+
+  <div class="upload-zone" id="uploadZone">
+    <span class="icon">&#128196;</span>
+    <p style="font-size:16px;font-weight:600;color:#e2e8f0;margin-bottom:8px;">Glissez-deposez vos PDF ici</p>
+    <p>ou cliquez pour selectionner un fichier</p>
+    <button class="btn-upload" onclick="document.getElementById('fileInput').click()">Choisir un fichier</button>
+    <div class="progress-bar" id="progressBar"><div class="progress-bar-fill" id="progressFill"></div></div>
+  </div>
+  <input type="file" id="fileInput" accept=".pdf" onchange="handleFileSelect(this.files[0])">
+
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Rechercher un document..." oninput="filterPdfs()">
+  </div>
+
+  <div id="pdfList" class="pdf-grid">
+    <div class="empty-state"><div class="big-icon">&#128196;</div><h3>Chargement...</h3></div>
+  </div>
+</div>
+
+<!-- Modal Edit -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Modifier le document</h3><button class="modal-close" onclick="closeModal()">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label>Titre</label><input type="text" id="editTitle"></div>
+      <div class="form-group"><label>Description</label><textarea id="editDesc"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+      <button class="btn btn-primary" onclick="saveEdit()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal URL -->
+<div class="modal-overlay" id="urlModal">
+  <div class="modal">
+    <div class="modal-header"><h3>Lien public</h3><button class="modal-close" onclick="closeUrlModal()">&times;</button></div>
+    <div class="modal-body">
+      <p style="color:#94a3b8;font-size:13px;margin-bottom:8px;">Partagez ce lien pour permettre l'acces direct au PDF :</p>
+      <div class="url-box"><input type="text" id="urlInput" readonly><button onclick="copyUrl()">Copier</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"><div class="toast-icon">&#10003;</div><div id="toastMsg">Operation reussie</div></div>
+
+<!-- Spinner -->
+<div class="spinner-overlay" id="spinner"><div class="loading" style="width:40px;height:40px;border-width:3px;"></div></div>
+
+<script type="module">
+// ==================== CONFIGURATION ====================
+// Remplacez ces 2 valeurs par celles de votre projet Supabase
+const SUPABASE_URL = 'https://VOTRE-PROJET.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJ...VOTRE-CLE-ANON...';
+// =======================================================
+
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let allPdfs = [];
+let editingId = null;
+
+function formatSize(bytes) {
+  if (!bytes) return '0 B';
+  const k = 1024, sizes = ['B','KB','MB','GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+function formatDate(iso) {
+  const d = new Date(iso);
+  return d.toLocaleDateString('fr-FR', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'});
+}
+function escapeHtml(t) {
+  const d = document.createElement('div');
+  d.textContent = t;
+  return d.innerHTML;
+}
+
+async function loadPdfs() {
+  try {
+    const { data, error } = await supabase.from('pdfs').select('*').order('uploaded_at', {ascending:false});
+    if (error) throw error;
+    allPdfs = data || [];
+    renderPdfs(allPdfs);
+    loadStats();
+  } catch(e) {
+    showToast('Erreur de chargement : ' + (e.message || ''), 'error');
+    document.getElementById('pdfList').innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="big-icon">&#128196;</div><h3>Erreur de connexion</h3><p>Verifiez la configuration Supabase dans le code.</p></div>`;
+  }
+}
+
+function loadStats() {
+  const total = allPdfs.length;
+  const totalSize = allPdfs.reduce((s, p) => s + (p.size || 0), 0);
+  const totalViews = allPdfs.reduce((s, p) => s + (p.views || 0), 0);
+  document.getElementById('stat-total').textContent = total;
+  document.getElementById('stat-size').textContent = formatSize(totalSize);
+  document.getElementById('stat-views').textContent = totalViews;
+}
+
+function renderPdfs(list) {
+  const container = document.getElementById('pdfList');
+  if (!list.length) {
+    container.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="big-icon">&#128196;</div><h3>Aucun document</h3><p>Commencez par uploader votre premier PDF</p></div>`;
+    return;
+  }
+  container.innerHTML = list.map(p => `
+    <div class="pdf-card">
+      <div class="pdf-preview"><span class="pdf-icon">&#128196;</span></div>
+      <div class="pdf-info">
+        <div class="pdf-title">${escapeHtml(p.title)}</div>
+        <div class="pdf-meta">
+          <span>${formatSize(p.size)}</span>
+          <span>&bull;</span>
+          <span>${formatDate(p.uploaded_at)}</span>
+          <span class="badge badge-views">&#128065; ${p.views || 0}</span>
+        </div>
+        ${p.description ? `<div class="pdf-desc">${escapeHtml(p.description)}</div>` : ''}
+        <div class="pdf-actions">
+          <a href="${p.public_url}" target="_blank" class="btn btn-primary" onclick="incrementView('${p.id}')">&#128065; Ouvrir</a>
+          <button class="btn btn-secondary" onclick="showUrl('${escapeHtml(p.public_url)}')">&#128279; Lien</button>
+          <button class="btn btn-secondary" onclick="editPdf('${p.id}')">&#9998; Modifier</button>
+          <button class="btn btn-danger" onclick="deletePdf('${p.id}', '${escapeHtml(p.file_path)}')">&#128465; Supprimer</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterPdfs() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  renderPdfs(allPdfs.filter(p =>
+    (p.title || '').toLowerCase().includes(q) ||
+    (p.description || '').toLowerCase().includes(q)
+  ));
+}
+
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+zone.addEventListener('drop', e => {
+  e.preventDefault();
+  zone.classList.remove('dragover');
+  const f = e.dataTransfer.files[0];
+  if (f) handleFileSelect(f);
+});
+
+function handleFileSelect(file) {
+  if (!file || file.type !== 'application/pdf') {
+    showToast('Veuillez selectionner un fichier PDF', 'error');
+    return;
+  }
+  uploadFile(file);
+}
+
+async function uploadFile(file) {
+  const bar = document.getElementById('progressBar');
+  const fill = document.getElementById('progressFill');
+  bar.classList.add('active');
+  fill.style.width = '20%';
+
+  try {
+    const filePath = `public/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+    fill.style.width = '40%';
+
+    const { data: upData, error: upError } = await supabase.storage.from('pdfs').upload(filePath, file);
+    if (upError) throw upError;
+    fill.style.width = '70%';
+
+    const { data: { publicUrl } } = supabase.storage.from('pdfs').getPublicUrl(filePath);
+    fill.style.width = '85%';
+
+    const { error: dbError } = await supabase.from('pdfs').insert({
+      title: file.name.replace('.pdf', ''),
+      description: '',
+      filename: file.name,
+      file_path: filePath,
+      size: file.size,
+      public_url: publicUrl
+    });
+    if (dbError) throw dbError;
+
+    fill.style.width = '100%';
+    showToast('PDF upload avec succes !', 'success');
+    await loadPdfs();
+  } catch(e) {
+    showToast('Erreur upload : ' + (e.message || ''), 'error');
+  } finally {
+    setTimeout(() => { bar.classList.remove('active'); fill.style.width = '0%'; }, 600);
+  }
+}
+
+async function deletePdf(id, filePath) {
+  if (!confirm('Supprimer ce document ? Cette action est irreversible.')) return;
+  document.getElementById('spinner').classList.add('active');
+  try {
+    const { error: sError } = await supabase.storage.from('pdfs').remove([filePath]);
+    if (sError) console.warn('Storage delete:', sError.message);
+    const { error: dError } = await supabase.from('pdfs').delete().eq('id', id);
+    if (dError) throw dError;
+    showToast('Document supprime', 'success');
+    await loadPdfs();
+  } catch(e) {
+    showToast('Erreur suppression : ' + (e.message || ''), 'error');
+  } finally {
+    document.getElementById('spinner').classList.remove('active');
+  }
+}
+
+async function incrementView(id) {
+  try {
+    await supabase.rpc('increment_pdf_view', { pdf_id: id });
+  } catch(e) {
+    try {
+      const pdf = allPdfs.find(p => p.id === id);
+      if (pdf) {
+        await supabase.from('pdfs').update({ views: (pdf.views || 0) + 1 }).eq('id', id);
+      }
+    } catch(e2) {}
+  }
+}
+
+function editPdf(id) {
+  const p = allPdfs.find(x => x.id === id);
+  if (!p) return;
+  editingId = id;
+  document.getElementById('editTitle').value = p.title;
+  document.getElementById('editDesc').value = p.description || '';
+  document.getElementById('editModal').classList.add('active');
+}
+function closeModal() {
+  document.getElementById('editModal').classList.remove('active');
+  editingId = null;
+}
+async function saveEdit() {
+  if (!editingId) return;
+  const body = {
+    title: document.getElementById('editTitle').value,
+    description: document.getElementById('editDesc').value
+  };
+  try {
+    const { error } = await supabase.from('pdfs').update(body).eq('id', editingId);
+    if (error) throw error;
+    showToast('Modifications enregistrees', 'success');
+    closeModal();
+    await loadPdfs();
+  } catch(e) {
+    showToast('Erreur : ' + (e.message || ''), 'error');
+  }
+}
+
+function showUrl(url) {
+  document.getElementById('urlInput').value = url;
+  document.getElementById('urlModal').classList.add('active');
+}
+function closeUrlModal() {
+  document.getElementById('urlModal').classList.remove('active');
+}
+function copyUrl() {
+  const input = document.getElementById('urlInput');
+  input.select();
+  document.execCommand('copy');
+  showToast('Lien copie !', 'success');
+}
+
+function showToast(msg, type='success') {
+  const t = document.getElementById('toast');
+  const icon = t.querySelector('.toast-icon');
+  document.getElementById('toastMsg').textContent = msg;
+  t.className = 'toast show ' + type;
+  icon.textContent = type === 'success' ? '\u2713' : '\u2715';
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+async function refreshData() {
+  await loadPdfs();
+  showToast('Donnees rafraichies', 'success');
+}
+
+document.getElementById('editModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('editModal')) closeModal();
+});
+document.getElementById('urlModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('urlModal')) closeUrlModal();
+});
+
+loadPdfs();
+</script>
+</body>
+</html>
