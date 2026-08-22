@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FodeXxx Admin - Gestionnaire de Catalogue</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0d0d0d; --bg-card: #1a1a1a; --bg-elevated: #242424; --bg-input: #2a2a2a;
+      --border: #333; --border-focus: #555;
+      --text: #fff; --text-secondary: #a0a0a0; --text-muted: #666;
+      --accent: #ff4757; --accent-hover: #ff6b81; --success: #2ed573; --gold: #ffa502; --info: #3498db;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.6; min-height: 100vh; }
+    .admin-header { background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 16px 24px; position: sticky; top: 0; z-index: 100; }
+    .admin-header-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    .admin-header h1 { font-size: 22px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .admin-header p { color: var(--text-muted); font-size: 13px; }
+    .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn { padding: 10px 18px; border-radius: 10px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn-secondary { background: var(--bg-elevated); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--border); }
+    .btn-success { background: var(--success); color: #000; font-weight: 600; }
+    .btn-success:hover { opacity: 0.9; }
+    .btn-info { background: var(--info); color: white; }
+    .btn-danger { background: #e74c3c; color: white; }
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn-block { width: 100%; justify-content: center; }
+    .admin-main { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; }
+    .stat-card .value { font-size: 28px; font-weight: 700; color: var(--accent); }
+    .stat-card .label { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+    .admin-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; } }
+    .panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .panel-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .panel-header h2 { font-size: 16px; font-weight: 600; }
+    .panel-body { padding: 20px; }
+    .series-list { max-height: 500px; overflow-y: auto; }
+    .series-item { display: flex; gap: 12px; padding: 12px; background: var(--bg); border-radius: 10px; margin-bottom: 10px; border: 1px solid var(--border); cursor: pointer; transition: all 0.2s; align-items: center; }
+    .series-item:hover { border-color: var(--accent); }
+    .series-item.active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 5%, var(--bg)); }
+    .series-item img { width: 50px; height: 70px; object-fit: cover; border-radius: 6px; flex-shrink: 0; background: var(--bg-elevated); }
+    .series-item .info { flex: 1; min-width: 0; }
+    .series-item .title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .series-item .meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .series-item .actions { display: flex; gap: 6px; }
+    .series-item .actions button { padding: 4px 8px; font-size: 11px; }
+    .empty-list { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+    .empty-list p { margin-top: 8px; font-size: 14px; }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+    .form-group label .required { color: var(--accent); }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border);
+      background: var(--bg-input); color: var(--text); font-size: 14px; outline: none; transition: all 0.2s; font-family: inherit;
+    }
+    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--accent); }
+    .form-group textarea { min-height: 80px; resize: vertical; }
+    .form-group .hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+    .chapters-manager { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+    .chapters-manager h3 { font-size: 15px; margin-bottom: 12px; }
+    .chapter-row { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
+    .chapter-row input { flex: 1; }
+    .chapter-row input.num { flex: 0 0 60px; text-align: center; }
+    .chapter-row .free-check { display: flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 13px; color: var(--text-secondary); }
+    .chapter-row .free-check input { width: auto; }
+    .chapter-row .remove-chap { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px; padding: 4px; }
+    .chapter-row .remove-chap:hover { color: var(--accent); }
+    .preview-card { background: var(--bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+    .preview-card img { width: 100%; height: 280px; object-fit: cover; display: block; background: var(--bg-elevated); }
+    .preview-card .preview-body { padding: 16px; }
+    .preview-card .preview-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+    .preview-card .preview-meta { font-size: 13px; color: var(--text-muted); margin-bottom: 10px; }
+    .preview-card .preview-price { font-size: 24px; font-weight: 800; color: var(--accent); }
+    .preview-card .preview-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-top: 10px; }
+    .export-section { margin-top: 24px; padding: 20px; background: color-mix(in srgb, var(--success) 5%, var(--bg-card)); border: 1px dashed var(--success); border-radius: 12px; }
+    .export-section h3 { color: var(--success); font-size: 16px; margin-bottom: 10px; }
+    .export-section p { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; }
+    .export-section code { background: var(--bg); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 12px; color: var(--gold); }
+    .import-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: all 0.2s; }
+    .import-zone:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 3%, transparent); }
+    .import-zone.dragover { border-color: var(--success); background: color-mix(in srgb, var(--success) 5%, transparent); }
+    .import-zone p { color: var(--text-muted); font-size: 14px; }
+    .import-zone input { display: none; }
+    .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 3000; display: flex; flex-direction: column; gap: 10px; }
+    .toast { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; padding: 14px 20px; color: var(--text); font-size: 14px; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards; max-width: 350px; }
+    .toast.success { border-color: var(--success); }
+    .toast.error { border-color: var(--accent); }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes toastOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(40px); } }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
+    .modal-overlay.active { display: flex; }
+    .modal-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; max-width: 400px; width: 100%; text-align: center; }
+    .modal-box h3 { margin-bottom: 12px; }
+    .modal-box p { color: var(--text-secondary); font-size: 14px; margin-bottom: 20px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: center; }
+    @media (max-width: 768px) {
+      .admin-header-inner { flex-direction: column; align-items: flex-start; }
+      .admin-main { padding: 16px; }
+      .stats-bar { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="admin-header">
+    <div class="admin-header-inner">
+      <div>
+        <h1>FodeXxx Admin</h1>
+        <p>Gestionnaire de catalogue BD</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary btn-sm" onclick="importCatalogue()">📥 Importer data.json</button>
+        <button class="btn btn-success" onclick="exporterCatalogue()">💾 Exporter data.json</button>
+        <a href="index.html" class="btn btn-secondary btn-sm" style="text-decoration:none;">👁 Voir le site</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-main">
+    <div class="stats-bar">
+      <div class="stat-card"><div class="value" id="statSeries">0</div><div class="label">Séries</div></div>
+      <div class="stat-card"><div class="value" id="statChapters">0</div><div class="label">Chapitres</div></div>
+      <div class="stat-card"><div class="value" id="statFree">0</div><div class="label">Chapitres gratuits</div></div>
+      <div class="stat-card"><div class="value" id="statRevenue">0</div><div class="label">FCFA potentiels</div></div>
+    </div>
+
+    <div class="admin-layout">
+      <div class="panel">
+        <div class="panel-header">
+          <h2>📚 Mes séries</h2>
+          <button class="btn btn-primary btn-sm" onclick="nouvelleSerie()">+ Nouvelle série</button>
+        </div>
+        <div class="panel-body">
+          <div id="seriesList" class="series-list">
+            <div class="empty-list">
+              <p>Aucune série pour le moment.</p>
+              <p>Cliquez sur "Nouvelle série" pour commencer.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h2>✏️ Éditeur</h2>
+          <span id="editorMode" style="font-size:12px;color:var(--text-muted);">Nouvelle série</span>
+        </div>
+        <div class="panel-body" id="editorPanel">
+          <form id="serieForm" onsubmit="return false;">
+            <input type="hidden" id="editId" value="">
+            
+            <div class="form-group">
+              <label>Titre de la série <span class="required">*</span></label>
+              <input type="text" id="fTitle" placeholder="Ex: Shadow Hunter" oninput="updatePreview()">
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Genre <span class="required">*</span></label>
+                <select id="fGenre" onchange="updatePreview()">
+                  <option value="action">Action</option>
+                  <option value="romance">Romance</option>
+                  <option value="fantasy">Fantasy</option>
+                  <option value="thriller">Thriller</option>
+                  <option value="comedie">Comédie</option>
+                  <option value="drame">Drame</option>
+                  <option value="horreur">Horreur</option>
+                  <option value="sci-fi">Science-fiction</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Catégorie</label>
+                <select id="fCategory" onchange="updatePreview()">
+                  <option value="popular">Populaire</option>
+                  <option value="new">Nouveauté</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>Prix (FCFA) <span class="required">*</span></label>
+                <input type="number" id="fPrice" placeholder="1000" min="0" step="100" oninput="updatePreview()">
+                <p class="hint">0 = gratuit</p>
+              </div>
+              <div class="form-group">
+                <label>Note (0-5)</label>
+                <input type="number" id="fRating" placeholder="4.5" min="0" max="5" step="0.1" value="4.5" oninput="updatePreview()">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Lien couverture (Imgur) <span class="required">*</span></label>
+              <input type="url" id="fCoverUrl" placeholder="https://i.imgur.com/ABC123.jpg" oninput="updatePreview()">
+              <p class="hint">Upload sur imgur.com, copiez le lien direct de l'image</p>
+            </div>
+            
+            <div class="form-group">
+              <label>Lien flipbook (AnyFlip) <span class="required">*</span></label>
+              <input type="url" id="fFlipUrl" placeholder="https://online.anyflip.com/votre-compte/lien/index.html">
+              <p class="hint">Lien de votre flipbook 3D sur AnyFlip</p>
+            </div>
+            
+            <div class="form-group">
+              <label>Synopsis <span class="required">*</span></label>
+              <textarea id="fDescription" placeholder="Décrivez votre série en 2-3 phrases..." oninput="updatePreview()"></textarea>
+            </div>
+            
+            <div class="chapters-manager">
+              <h3>📑 Chapitres</h3>
+              <p class="hint" style="margin-bottom:12px;">Le chapitre 1 doit être gratuit. Les autres sont verrouillés jusqu'à l'achat.</p>
+              <div id="chaptersList">
+                <div class="chapter-row">
+                  <input type="number" class="num" value="1" readonly>
+                  <input type="text" placeholder="Titre du chapitre 1" class="chap-title-input">
+                  <label class="free-check"><input type="checkbox" checked disabled> Gratuit</label>
+                </div>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="ajouterChapitre()" style="margin-top:8px;">+ Ajouter un chapitre</button>
+            </div>
+            
+            <div style="display:flex;gap:10px;margin-top:20px;">
+              <button type="button" class="btn btn-primary btn-block" onclick="sauvegarderSerie()">💾 Sauvegarder la série</button>
+              <button type="button" class="btn btn-danger btn-sm" onclick="supprimerSerie()" id="btnDelete" style="display:none;">🗑 Supprimer</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:24px;">
+      <div class="panel-header"><h2>👁 Aperçu (rendu sur le site)</h2></div>
+      <div class="panel-body">
+        <div style="max-width:300px;">
+          <div class="preview-card" id="previewCard">
+            <img src="" alt="Couverture" id="previewImg" onerror="this.style.background='#242424'">
+            <div class="preview-body">
+              <div class="preview-title" id="previewTitle">Titre</div>
+              <div class="preview-meta" id="previewMeta">Genre • 0 chapitres</div>
+              <div class="preview-price" id="previewPrice">0 FCFA</div>
+              <div class="preview-desc" id="previewDesc">Synopsis...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="export-section">
+      <h3>🚀 Mettre en ligne</h3>
+      <p>Quand vous avez fini, cliquez sur <strong>"Exporter data.json"</strong> en haut de page. Téléchargez le fichier et placez-le à côté de <code>index.html</code> sur votre hébergement (Netlify, GitHub Pages, etc.).</p>
+      <button class="btn btn-success btn-block" onclick="exporterCatalogue()" style="max-width:400px;">💾 Télécharger data.json</button>
+    </div>
+  </main>
+
+  <div id="importModal" class="modal-overlay" onclick="if(event.target===this)closeImportModal()">
+    <div class="modal-box">
+      <h3>📥 Importer un catalogue</h3>
+      <p>Glissez-déposez votre fichier <code>data.json</code> ici, ou cliquez pour sélectionner.</p>
+      <div class="import-zone" id="importZone" onclick="document.getElementById('importFile').click()">
+        <p>Cliquez ou déposez data.json ici</p>
+        <input type="file" id="importFile" accept=".json" onchange="handleImportFile(this)">
+      </div>
+      <div class="modal-actions" style="margin-top:16px;">
+        <button class="btn btn-secondary" onclick="closeImportModal()">Annuler</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="confirmModal" class="modal-overlay">
+    <div class="modal-box">
+      <h3>⚠️ Confirmation</h3>
+      <p id="confirmText">Voulez-vous vraiment supprimer cette série ?</p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeConfirmModal()">Annuler</button>
+        <button class="btn btn-danger" id="confirmBtn">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+<script>
+let catalogue = { series: [] };
+let editingId = null;
+let nextId = 1;
+let itemToDelete = null;
+
+function init() {
+  try {
+    const saved = localStorage.getItem('fodexxx_admin_catalogue');
+    if (saved) {
+      catalogue = JSON.parse(saved);
+      nextId = catalogue.series.reduce((max, s) => Math.max(max, s.id || 0), 0) + 1;
+    }
+  } catch(e) {}
+  renderSeriesList();
+  updateStats();
+  updatePreview();
+  setupDragDrop();
+}
+
+function esc(str) {
+  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function formatPrice(p) {
+  return (p || 0).toLocaleString('fr-FR') + ' FCFA';
+}
+
+function renderSeriesList() {
+  const container = document.getElementById('seriesList');
+  if (catalogue.series.length === 0) {
+    container.innerHTML = '<div class="empty-list"><p>Aucune série pour le moment.</p><p>Cliquez sur "Nouvelle série" pour commencer.</p></div>';
+    return;
+  }
+  container.innerHTML = catalogue.series.map(s => `
+    <div class="series-item ${editingId === s.id ? 'active' : ''}" onclick="editerSerie(${s.id})">
+      <img src="${esc(s.coverUrl || '')}" alt="" onerror="this.style.display='none'">
+      <div class="info">
+        <div class="title">${esc(s.title || 'Sans titre')}</div>
+        <div class="meta">${esc(s.genre || '')} • ${s.chapters || 0} chapitres • ${s.price || 0} FCFA</div>
+      </div>
+      <div class="actions" onclick="event.stopPropagation()">
+        <button class="btn btn-primary btn-sm" onclick="editerSerie(${s.id})">Éditer</button>
+        <button class="btn btn-danger btn-sm" onclick="confirmerSuppression(${s.id})">X</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateStats() {
+  document.getElementById('statSeries').textContent = catalogue.series.length;
+  const totalChap = catalogue.series.reduce((sum, s) => sum + (s.chapters || 0), 0);
+  document.getElementById('statChapters').textContent = totalChap;
+  const freeChap = catalogue.series.reduce((sum, s) => sum + (s.chapterList || []).filter(c => c.free).length, 0);
+  document.getElementById('statFree').textContent = freeChap;
+  const revenue = catalogue.series.reduce((sum, s) => sum + ((s.price || 0) * (s.chapters || 0)), 0);
+  document.getElementById('statRevenue').textContent = formatPrice(revenue);
+}
+
+function nouvelleSerie() {
+  editingId = null;
+  document.getElementById('editId').value = '';
+  document.getElementById('editorMode').textContent = 'Nouvelle série';
+  document.getElementById('btnDelete').style.display = 'none';
+  document.getElementById('fTitle').value = '';
+  document.getElementById('fGenre').value = 'action';
+  document.getElementById('fCategory').value = 'popular';
+  document.getElementById('fPrice').value = '';
+  document.getElementById('fRating').value = '4.5';
+  document.getElementById('fCoverUrl').value = '';
+  document.getElementById('fFlipUrl').value = '';
+  document.getElementById('fDescription').value = '';
+  document.getElementById('chaptersList').innerHTML = `
+    <div class="chapter-row">
+      <input type="number" class="num" value="1" readonly>
+      <input type="text" placeholder="Titre du chapitre 1" class="chap-title-input">
+      <label class="free-check"><input type="checkbox" checked disabled> Gratuit</label>
+    </div>
+  `;
+  renderSeriesList();
+  updatePreview();
+}
+
+function editerSerie(id) {
+  const serie = catalogue.series.find(s => s.id === id);
+  if (!serie) return;
+
+  editingId = id;
+  document.getElementById('editId').value = id;
+  document.getElementById('editorMode').textContent = 'Édition: ' + serie.title;
+  document.getElementById('btnDelete').style.display = 'inline-flex';
+
+  document.getElementById('fTitle').value = serie.title || '';
+  document.getElementById('fGenre').value = serie.genre || 'action';
+  document.getElementById('fCategory').value = serie.category || 'popular';
+  document.getElementById('fPrice').value = serie.price || 0;
+  document.getElementById('fRating').value = serie.rating || 4.5;
+  document.getElementById('fCoverUrl').value = serie.coverUrl || '';
+  document.getElementById('fFlipUrl').value = serie.flipUrl || '';
+  document.getElementById('fDescription').value = serie.description || '';
+
+  const cList = document.getElementById('chaptersList');
+  cList.innerHTML = '';
+
+  const list = (serie.chapterList && serie.chapterList.length > 0) 
+    ? serie.chapterList 
+    : [{ num: 1, title: 'Chapitre 1', free: true }];
+
+  list.forEach((ch, idx) => {
+    const isFirst = idx === 0;
+    const row = document.createElement('div');
+    row.className = 'chapter-row';
+    row.innerHTML = `
+      <input type="number" class="num" value="${ch.num || (idx + 1)}" readonly>
+      <input type="text" placeholder="Titre du chapitre ${idx + 1}" class="chap-title-input" value="${esc(ch.title || '')}">
+      <label class="free-check">
+        <input type="checkbox" ${ch.free || isFirst ? 'checked' : ''} ${isFirst ? 'disabled' : ''}> Gratuit
+      </label>
+      ${!isFirst ? '<button type="button" class="remove-chap" onclick="supprimerChapitre(this)">×</button>' : ''}
+    `;
+    cList.appendChild(row);
+  });
+
+  renderSeriesList();
+  updatePreview();
+}
+
+function ajouterChapitre() {
+  const container = document.getElementById('chaptersList');
+  const count = container.querySelectorAll('.chapter-row').length + 1;
+  const row = document.createElement('div');
+  row.className = 'chapter-row';
+  row.innerHTML = `
+    <input type="number" class="num" value="${count}" readonly>
+    <input type="text" placeholder="Titre du chapitre ${count}" class="chap-title-input">
+    <label class="free-check"><input type="checkbox"> Gratuit</label>
+    <button type="button" class="remove-chap" onclick="supprimerChapitre(this)">×</button>
+  `;
+  container.appendChild(row);
+  updatePreview();
+}
+
+function supprimerChapitre(btn) {
+  btn.closest('.chapter-row').remove();
+  reindexerChapitres();
+  updatePreview();
+}
+
+function reindexerChapitres() {
+  const rows = document.querySelectorAll('#chaptersList .chapter-row');
+  rows.forEach((row, i) => {
+    row.querySelector('.num').value = i + 1;
+  });
+}
+
+function sauvegarderSerie() {
+  const title = document.getElementById('fTitle').value.trim();
+  const coverUrl = document.getElementById('fCoverUrl').value.trim();
+  const flipUrl = document.getElementById('fFlipUrl').value.trim();
+  const description = document.getElementById('fDescription').value.trim();
+
+  if (!title || !coverUrl || !flipUrl || !description) {
+    showToast('Veuillez remplir tous les champs obligatoires (*)', 'error');
+    return;
+  }
+
+  const chapRows = document.querySelectorAll('#chaptersList .chapter-row');
+  const chapterList = [];
+  chapRows.forEach((row, idx) => {
+    const num = parseInt(row.querySelector('.num').value) || (idx + 1);
+    const tInput = row.querySelector('.chap-title-input').value.trim();
+    const isFree = row.querySelector('input[type="checkbox"]').checked;
+    chapterList.push({
+      num: num,
+      title: tInput || `Chapitre ${num}`,
+      free: idx === 0 ? true : isFree
+    });
+  });
+
+  const serieData = {
+    id: editingId ? editingId : nextId++,
+    title: title,
+    genre: document.getElementById('fGenre').value,
+    category: document.getElementById('fCategory').value,
+    price: parseFloat(document.getElementById('fPrice').value) || 0,
+    rating: parseFloat(document.getElementById('fRating').value) || 4.5,
+    coverUrl: coverUrl,
+    flipUrl: flipUrl,
+    description: description,
+    chapters: chapterList.length,
+    chapterList: chapterList
+  };
+
+  if (editingId) {
+    const index = catalogue.series.findIndex(s => s.id === editingId);
+    if (index !== -1) catalogue.series[index] = serieData;
+  } else {
+    catalogue.series.push(serieData);
+  }
+
+  sauvegarderLocal();
+  showToast('Série sauvegardée avec succès !', 'success');
+  nouvelleSerie();
+  updateStats();
+}
+
+function confirmerSuppression(id) {
+  itemToDelete = id;
+  document.getElementById('confirmText').textContent = "Voulez-vous vraiment supprimer cette série ?";
+  document.getElementById('confirmBtn').onclick = () => {
+    catalogue.series = catalogue.series.filter(s => s.id !== itemToDelete);
+    sauvegarderLocal();
+    closeConfirmModal();
+    if (editingId === itemToDelete) nouvelleSerie();
+    else renderSeriesList();
+    updateStats();
+    showToast('Série supprimée', 'success');
+  };
+  document.getElementById('confirmModal').classList.add('active');
+}
+
+function supprimerSerie() {
+  if (editingId) confirmerSuppression(editingId);
+}
+
+function closeConfirmModal() {
+  document.getElementById('confirmModal').classList.remove('active');
+  itemToDelete = null;
+}
+
+function updatePreview() {
+  const title = document.getElementById('fTitle').value.trim() || 'Titre de la série';
+  const genre = document.getElementById('fGenre').value || 'Genre';
+  const price = document.getElementById('fPrice').value;
+  const cover = document.getElementById('fCoverUrl').value.trim();
+  const desc = document.getElementById('fDescription').value.trim() || 'Synopsis de la série...';
+  const chapCount = document.querySelectorAll('#chaptersList .chapter-row').length;
+
+  document.getElementById('previewTitle').textContent = title;
+  document.getElementById('previewMeta').textContent = `${genre} • ${chapCount} chapitre(s)`;
+  document.getElementById('previewPrice').textContent = price ? `${price} FCFA` : '0 FCFA (Gratuit)';
+  document.getElementById('previewDesc').textContent = desc;
+
+  const img = document.getElementById('previewImg');
+  if (cover) {
+    img.src = cover;
+    img.style.display = 'block';
+  } else {
+    img.src = '';
+    img.style.display = 'block';
+  }
+}
+
+function sauvegarderLocal() {
+  localStorage.setItem('fodexxx_admin_catalogue', JSON.stringify(catalogue));
+}
+
+function exporterCatalogue() {
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(catalogue, null, 2));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute("href", dataStr);
+  downloadAnchor.setAttribute("download", "data.json");
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+  showToast('Fichier data.json exporté !', 'success');
+}
+
+function importCatalogue() {
+  document.getElementById('importModal').classList.add('active');
+}
+
+function closeImportModal() {
+  document.getElementById('importModal').classList.remove('active');
+}
+
+function handleImportFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data && Array.isArray(data.series)) {
+        catalogue = data;
+        nextId = catalogue.series.reduce((max, s) => Math.max(max, s.id || 0), 0) + 1;
+        sauvegarderLocal();
+        renderSeriesList();
+        updateStats();
+        closeImportModal();
+        showToast('Catalogue importé avec succès !', 'success');
+      } else {
+        showToast('Format JSON invalide (clé "series" manquante)', 'error');
+      }
+    } catch(err) {
+      showToast('Erreur lors de la lecture du fichier JSON', 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function setupDragDrop() {
+  const zone = document.getElementById('importZone');
+  if (!zone) return;
+
+  ['dragenter', 'dragover'].forEach(eventName => {
+    zone.addEventListener(eventName, (e) => { e.preventDefault(); zone.classList.add('dragover'); }, false);
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    zone.addEventListener(eventName, (e) => { e.preventDefault(); zone.classList.remove('dragover'); }, false);
+  });
+
+  zone.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    if (files.length > 0) {
+      document.getElementById('importFile').files = files;
+      handleImportFile(document.getElementById('importFile'));
+    }
+  }, false);
+}
+
+function showToast(msg, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span>${type === 'success' ? '✅' : '⚠️'}</span> <div>${esc(msg)}</div>`;
+  container.appendChild(toast);
+  setTimeout(() => { toast.remove(); }, 3000);
+}
+
+window.onload = init;
+</script>
+</body>
+</html>
