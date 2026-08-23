@@ -1,358 +1,694 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin - FodeXxx</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Inter',sans-serif; background:#0a0a0f; color:#e8e8ec; min-height:100vh; }
-.container { max-width:1200px; margin:0 auto; padding:24px; }
-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:32px; padding-bottom:20px; border-bottom:1px solid #1a1a24; flex-wrap:wrap; gap:12px; }
-h1 { font-size:26px; font-weight:800; background:linear-gradient(135deg,#ff6b6b,#feca57); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-.stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:32px; }
-.stat-card { background:#14141f; border:1px solid #1f1f2e; border-radius:16px; padding:20px; transition:all .3s ease; }
-.stat-card:hover { border-color:#ff6b6b; }
-.stat-label { font-size:12px; color:#555; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; font-weight:600; }
-.stat-value { font-size:32px; font-weight:800; color:#fff; }
-.upload-zone { border:2px dashed #2a2a3a; border-radius:20px; padding:48px 24px; text-align:center; margin-bottom:32px; transition:all .3s ease; cursor:pointer; background:#14141f; }
-.upload-zone:hover,.upload-zone.dragover { border-color:#ff6b6b; background:#1a1a24; }
-.upload-zone .icon { font-size:48px; margin-bottom:16px; display:block; }
-.upload-zone p { color:#666; font-size:14px; }
-.upload-zone .btn-upload { margin-top:16px; background:linear-gradient(135deg,#ff6b6b,#feca57); color:#0a0a0f; border:none; padding:12px 28px; border-radius:12px; font-weight:700; cursor:pointer; font-size:14px; transition:all .3s ease; }
-.upload-zone .btn-upload:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(255,107,107,0.3); }
-input[type="file"] { display:none; }
-.search-bar { margin-bottom:24px; }
-.search-bar input { width:100%; max-width:400px; background:#14141f; border:1px solid #1f1f2e; border-radius:12px; padding:12px 16px 12px 44px; color:#e8e8ec; font-size:14px; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23555' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:14px center; background-size:18px; outline:none; }
-.search-bar input:focus { border-color:#ff6b6b; }
-.series-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:20px; }
-.series-card { background:#14141f; border:1px solid #1f1f2e; border-radius:16px; overflow:hidden; transition:all .3s ease; }
-.series-card:hover { border-color:#2a2a3a; transform:translateY(-4px); box-shadow:0 20px 40px rgba(0,0,0,0.4); }
-.cover-wrap { height:160px; position:relative; overflow:hidden; }
-.cover-img { width:100%; height:100%; object-fit:cover; }
-.cover-overlay { position:absolute; inset:0; background:linear-gradient(to top,rgba(10,10,15,0.9) 0%,transparent 60%); }
-.card-info { padding:16px 18px 18px; }
-.card-title { font-size:15px; font-weight:700; color:#fff; margin-bottom:4px; word-break:break-word; }
-.card-meta { font-size:11px; color:#444; margin-bottom:10px; display:flex; gap:10px; flex-wrap:wrap; }
-.card-desc { font-size:12px; color:#555; margin-bottom:12px; line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-.card-actions { display:flex; gap:6px; flex-wrap:wrap; }
-.btn { padding:7px 14px; border-radius:8px; font-size:11px; font-weight:700; cursor:pointer; border:none; transition:all .2s ease; text-decoration:none; display:inline-flex; align-items:center; gap:5px; }
-.btn-primary { background:#ff6b6b; color:#fff; }
-.btn-primary:hover { background:#ff5252; }
-.btn-secondary { background:#1f1f2e; color:#888; }
-.btn-secondary:hover { background:#2a2a3a; color:#fff; }
-.btn-danger { background:#ef4444; color:#fff; }
-.btn-danger:hover { background:#dc2626; }
-.empty-state { text-align:center; padding:80px 24px; color:#444; grid-column:1/-1; }
-.empty-state .big-icon { font-size:56px; margin-bottom:12px; opacity:.3; }
-.progress-bar { width:100%; height:4px; background:#1f1f2e; border-radius:2px; margin-top:12px; overflow:hidden; display:none; }
-.progress-bar.active { display:block; }
-.progress-bar-fill { height:100%; background:linear-gradient(90deg,#ff6b6b,#feca57); border-radius:2px; width:0%; transition:width .3s ease; }
-.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.8); backdrop-filter:blur(10px); display:none; align-items:center; justify-content:center; z-index:1000; padding:24px; }
-.modal-overlay.active { display:flex; }
-.modal { background:#14141f; border:1px solid #2a2a3a; border-radius:20px; max-width:480px; width:100%; max-height:90vh; overflow-y:auto; }
-.modal-header { padding:20px 20px 0; display:flex; justify-content:space-between; align-items:center; }
-.modal-header h3 { font-size:16px; font-weight:700; }
-.modal-close { background:none; border:none; color:#444; font-size:22px; cursor:pointer; width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; transition:all .2s; }
-.modal-close:hover { background:#1f1f2e; color:#fff; }
-.modal-body { padding:16px 20px; }
-.form-group { margin-bottom:14px; }
-.form-group label { display:block; font-size:12px; font-weight:600; color:#555; margin-bottom:5px; text-transform:uppercase; letter-spacing:.5px; }
-.form-group input,.form-group textarea { width:100%; background:#0a0a0f; border:1px solid #1f1f2e; border-radius:10px; padding:11px 14px; color:#e8e8ec; font-size:13px; font-family:inherit; outline:none; transition:all .2s; }
-.form-group input:focus,.form-group textarea:focus { border-color:#ff6b6b; }
-.form-group textarea { resize:vertical; min-height:70px; }
-.modal-footer { padding:0 20px 20px; display:flex; justify-content:flex-end; gap:8px; }
-.toast { position:fixed; bottom:24px; right:24px; background:#14141f; border:1px solid #2a2a3a; border-radius:12px; padding:14px 18px; display:flex; align-items:center; gap:10px; box-shadow:0 20px 40px rgba(0,0,0,0.5); transform:translateY(100px); opacity:0; transition:all .4s cubic-bezier(0.175,0.885,0.32,1.275); z-index:2000; }
-.toast.show { transform:translateY(0); opacity:1; }
-.toast.success { border-color:#22c55e; }
-.toast.error { border-color:#ef4444; }
-.toast-icon { width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:14px; }
-.toast.success .toast-icon { background:#22c55e20; color:#22c55e; }
-.toast.error .toast-icon { background:#ef444420; color:#ef4444; }
-.url-box { background:#0a0a0f; border:1px solid #1f1f2e; border-radius:10px; padding:10px; display:flex; align-items:center; gap:8px; margin-top:10px; }
-.url-box input { flex:1; background:transparent; border:none; color:#ff6b6b; font-size:12px; font-family:monospace; outline:none; }
-.url-box button { background:#1f1f2e; border:none; color:#888; padding:5px 10px; border-radius:6px; font-size:11px; cursor:pointer; }
-.url-box button:hover { background:#2a2a3a; color:#fff; }
-.spinner-overlay { position:fixed; inset:0; background:rgba(10,10,15,0.85); display:none; align-items:center; justify-content:center; z-index:3000; }
-.spinner-overlay.active { display:flex; }
-.loading { display:inline-block; width:36px; height:36px; border:3px solid #1f1f2e; border-top-color:#ff6b6b; border-radius:50%; animation:spin .8s linear infinite; }
-@keyframes spin { to { transform:rotate(360deg); } }
-@media(max-width:640px) { .series-grid { grid-template-columns:1fr; } header { flex-direction:column; gap:10px; align-items:flex-start; } }
-</style>
-</head>
-<body>
-<div class="container">
-  <header>
-    <h1>Admin BD 3D</h1>
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-      <button class="btn btn-secondary" onclick="refreshData()">🔄 Rafraichir</button>
-      <a href="/" class="btn btn-primary">🌐 Voir le site</a>
-    </div>
-  </header>
-
-  <div class="stats">
-    <div class="stat-card"><div class="stat-label">Series</div><div class="stat-value" id="stat-total">0</div></div>
-    <div class="stat-card"><div class="stat-label">Taille totale</div><div class="stat-value" id="stat-size">0 MB</div></div>
-    <div class="stat-card"><div class="stat-label">Lectures</div><div class="stat-value" id="stat-views">0</div></div>
-  </div>
-
-  <div class="upload-zone" id="uploadZone">
-    <span class="icon">📚</span>
-    <p style="font-size:15px;font-weight:700;color:#e8e8ec;margin-bottom:6px;">Glisse-depose un PDF ici</p>
-    <p>ou clique pour selectionner un fichier</p>
-    <button class="btn-upload" onclick="document.getElementById('fileInput').click()">Choisir un fichier</button>
-    <div class="progress-bar" id="progressBar"><div class="progress-bar-fill" id="progressFill"></div></div>
-  </div>
-  <input type="file" id="fileInput" accept=".pdf" onchange="handleFileSelect(this.files[0])">
-
-  <div class="search-bar">
-    <input type="text" id="searchInput" placeholder="Rechercher une serie..." oninput="filterSeries()">
-  </div>
-
-  <div id="seriesGrid" class="series-grid">
-    <div class="empty-state" style="grid-column:1/-1;"><div class="big-icon">📚</div><h3>Chargement...</h3></div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="editModal">
-  <div class="modal">
-    <div class="modal-header"><h3>Modifier la serie</h3><button class="modal-close" onclick="closeModal()">&times;</button></div>
-    <div class="modal-body">
-      <div class="form-group"><label>Titre</label><input type="text" id="editTitle"></div>
-      <div class="form-group"><label>Description</label><textarea id="editDesc"></textarea></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal()">Annuler</button>
-      <button class="btn btn-primary" onclick="saveEdit()">Enregistrer</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="urlModal">
-  <div class="modal">
-    <div class="modal-header"><h3>Lien public</h3><button class="modal-close" onclick="closeUrlModal()">&times;</button></div>
-    <div class="modal-body">
-      <p style="color:#555;font-size:12px;margin-bottom:6px;">Partage ce lien :</p>
-      <div class="url-box"><input type="text" id="urlInput" readonly><button onclick="copyUrl()">Copier</button></div>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast"><div class="toast-icon">✓</div><div id="toastMsg">OK</div></div>
-<div class="spinner-overlay" id="spinner"><div class="loading"></div></div>
-
-<script type="module">
-const SUPABASE_URL = 'https://wxncjpvglvxsfskfsqey.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_0Wui3p23IR6igGQbmjjYnw_r9xBHuv6
-
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-let allSeries = [];
-let editingId = null;
-
-function generateCover(title, id) {
-  const hues = [0, 25, 45, 120, 180, 220, 280, 320];
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  const hue1 = hues[Math.abs(hash) % hues.length];
-  const hue2 = (hue1 + 40) % 360;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="hsl(${hue1},70%,30%)"/><stop offset="100%" stop-color="hsl(${hue2},60%,15%)"/></linearGradient></defs><rect fill="url(#g)" width="400" height="200"/><text x="50%" y="50%" text-anchor="middle" fill="rgba(255,255,255,0.15)" font-family="Arial" font-size="80" font-weight="900">${title.charAt(0).toUpperCase()}</text></svg>`;
-  return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
-}
-
-function formatSize(bytes) {
-  if (!bytes) return '0 B';
-  const k = 1024, sizes = ['B','KB','MB','GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-}
-function formatDate(iso) {
-  const d = new Date(iso);
-  return d.toLocaleDateString('fr-FR', {day:'2-digit', month:'short', year:'numeric'});
-}
-function escapeHtml(t) {
-  const d = document.createElement('div'); d.textContent = t; return d.innerHTML;
-}
-
-async function loadSeries() {
-  try {
-    const { data, error } = await supabase.from('pdfs').select('*').order('uploaded_at', {ascending:false});
-    if (error) throw error;
-    allSeries = data || [];
-    renderSeries(allSeries);
-    loadStats();
-  } catch(e) {
-    showToast('Erreur de chargement : ' + (e.message||''), 'error');
-    document.getElementById('seriesGrid').innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="big-icon">⚠️</div><h3>Erreur de connexion</h3></div>`;
-  }
-}
-
-function loadStats() {
-  const total = allSeries.length;
-  const totalSize = allSeries.reduce((s, p) => s + (p.size || 0), 0);
-  const totalViews = allSeries.reduce((s, p) => s + (p.views || 0), 0);
-  document.getElementById('stat-total').textContent = total;
-  document.getElementById('stat-size').textContent = formatSize(totalSize);
-  document.getElementById('stat-views').textContent = totalViews;
-}
-
-function renderSeries(list) {
-  const container = document.getElementById('seriesGrid');
-  if (!list.length) {
-    container.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="big-icon">📚</div><h3>Aucune serie</h3><p>Upload ta premiere BD 3D</p></div>`;
-    return;
-  }
-  container.innerHTML = list.map(s => {
-    const cover = generateCover(s.title, s.id);
-    return `
-    <div class="series-card">
-      <div class="cover-wrap">
-        <img class="cover-img" src="${cover}" alt="${escapeHtml(s.title)}">
-        <div class="cover-overlay"></div>
-      </div>
-      <div class="card-info">
-        <div class="card-title">${escapeHtml(s.title)}</div>
-        <div class="card-meta">
-          <span>${formatSize(s.size)}</span>
-          <span>•</span>
-          <span>${formatDate(s.uploaded_at)}</span>
-          <span>•</span>
-          <span>👁 ${s.views||0}</span>
-        </div>
-        ${s.description ? `<div class="card-desc">${escapeHtml(s.description)}</div>` : ''}
-        <div class="card-actions">
-          <a href="${s.public_url}" target="_blank" class="btn btn-primary" onclick="incrementView('${s.id}')">📖 Lire</a>
-          <button class="btn btn-secondary" onclick="showUrl('${escapeHtml(s.public_url)}')">🔗 Lien</button>
-          <button class="btn btn-secondary" onclick="editSeries('${s.id}')">✏️ Modifier</button>
-          <button class="btn btn-danger" onclick="deleteSeries('${s.id}', '${escapeHtml(s.file_path)}')">🗑️ Suppr</button>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function filterSeries() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  renderSeries(allSeries.filter(s => (s.title||'').toLowerCase().includes(q) || (s.description||'').toLowerCase().includes(q)));
-}
-
-const zone = document.getElementById('uploadZone');
-zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('dragover'); });
-zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
-zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('dragover'); const f = e.dataTransfer.files[0]; if (f) handleFileSelect(f); });
-
-function handleFileSelect(file) {
-  if (!file || file.type !== 'application/pdf') { showToast('Selectionne un fichier PDF', 'error'); return; }
-  uploadFile(file);
-}
-
-async function uploadFile(file) {
-  const bar = document.getElementById('progressBar');
-  const fill = document.getElementById('progressFill');
-  bar.classList.add('active'); fill.style.width = '20%';
-  try {
-    const filePath = `public/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
-    fill.style.width = '40%';
-    const { error: upError } = await supabase.storage.from('pdfs').upload(filePath, file);
-    if (upError) throw upError;
-    fill.style.width = '70%';
-    const { data: { publicUrl } } = supabase.storage.from('pdfs').getPublicUrl(filePath);
-    fill.style.width = '85%';
-    const { error: dbError } = await supabase.from('pdfs').insert({
-      title: file.name.replace('.pdf', ''),
-      description: '',
-      filename: file.name,
-      file_path: filePath,
-      size: file.size,
-      public_url: publicUrl
-    });
-    if (dbError) throw dbError;
-    fill.style.width = '100%';
-    showToast('BD uploadee avec succes !', 'success');
-    await loadSeries();
-  } catch(e) {
-    showToast('Erreur upload : ' + (e.message||''), 'error');
-  } finally {
-    setTimeout(() => { bar.classList.remove('active'); fill.style.width = '0%'; }, 600);
-  }
-}
-
-async function deleteSeries(id, filePath) {
-  if (!confirm('Supprimer cette serie ?')) return;
-  document.getElementById('spinner').classList.add('active');
-  try {
-    await supabase.storage.from('pdfs').remove([filePath]);
-    const { error } = await supabase.from('pdfs').delete().eq('id', id);
-    if (error) throw error;
-    showToast('Serie supprimee', 'success');
-    await loadSeries();
-  } catch(e) {
-    showToast('Erreur : ' + (e.message||''), 'error');
-  } finally {
-    document.getElementById('spinner').classList.remove('active');
-  }
-}
-
-async function incrementView(id) {
-  try {
-    const s = allSeries.find(p => p.id === id);
-    if (s) await supabase.from('pdfs').update({ views: (s.views||0) + 1 }).eq('id', id);
-  } catch(e) {}
-}
-
-function editSeries(id) {
-  const s = allSeries.find(x => x.id === id);
-  if (!s) return;
-  editingId = id;
-  document.getElementById('editTitle').value = s.title;
-  document.getElementById('editDesc').value = s.description || '';
-  document.getElementById('editModal').classList.add('active');
-}
-function closeModal() {
-  document.getElementById('editModal').classList.remove('active');
-  editingId = null;
-}
-async function saveEdit() {
-  if (!editingId) return;
-  try {
-    const { error } = await supabase.from('pdfs').update({
-      title: document.getElementById('editTitle').value,
-      description: document.getElementById('editDesc').value
-    }).eq('id', editingId);
-    if (error) throw error;
-    showToast('Modifications enregistrees', 'success');
-    closeModal(); await loadSeries();
-  } catch(e) { showToast('Erreur', 'error'); }
-}
-
-function showUrl(url) {
-  document.getElementById('urlInput').value = url;
-  document.getElementById('urlModal').classList.add('active');
-}
-function closeUrlModal() { document.getElementById('urlModal').classList.remove('active'); }
-function copyUrl() {
-  document.getElementById('urlInput').select();
-  document.execCommand('copy');
-  showToast('Lien copie !', 'success');
-}
-
-function showToast(msg, type='success') {
-  const t = document.getElementById('toast');
-  const icon = t.querySelector('.toast-icon');
-  document.getElementById('toastMsg').textContent = msg;
-  t.className = 'toast show ' + type;
-  icon.textContent = type === 'success' ? '✓' : '✕';
-  setTimeout(() => t.classList.remove('show'), 3500);
-}
-
-async function refreshData() { await loadSeries(); showToast('Donnees rafraichies', 'success'); }
-
-document.getElementById('editModal').addEventListener('click', e => { if (e.target === document.getElementById('editModal')) closeModal(); });
-document.getElementById('urlModal').addEventListener('click', e => { if (e.target === document.getElementById('urlModal')) closeUrlModal(); });
-
-loadSeries();
-</script>
-</body>
-</html>
+1	<!DOCTYPE html>
+     2	<html lang="fr">
+     3	<head>
+     4	  <meta charset="UTF-8">
+     5	  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     6	  <title>FodeXxx Admin - Gestionnaire de Catalogue</title>
+     7	  <style>
+     8	    * { box-sizing: border-box; margin: 0; padding: 0; }
+     9	    :root {
+    10	      --bg: #0d0d0d; --bg-card: #1a1a1a; --bg-elevated: #242424; --bg-input: #2a2a2a;
+    11	      --border: #333; --border-focus: #555;
+    12	      --text: #fff; --text-secondary: #a0a0a0; --text-muted: #666;
+    13	      --accent: #ff4757; --accent-hover: #ff6b81; --success: #2ed573; --gold: #ffa502; --info: #3498db;
+    14	    }
+    15	    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.6; min-height: 100vh; }
+    16	
+    17	    /* Header */
+    18	    .admin-header { background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 16px 24px; position: sticky; top: 0; z-index: 100; }
+    19	    .admin-header-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    20	    .admin-header h1 { font-size: 22px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    21	    .admin-header p { color: var(--text-muted); font-size: 13px; }
+    22	    .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    23	
+    24	    .btn { padding: 10px 18px; border-radius: 10px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+    25	    .btn-primary { background: var(--accent); color: white; }
+    26	    .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    27	    .btn-secondary { background: var(--bg-elevated); color: var(--text); border: 1px solid var(--border); }
+    28	    .btn-secondary:hover { background: var(--border); }
+    29	    .btn-success { background: var(--success); color: #000; font-weight: 600; }
+    30	    .btn-success:hover { opacity: 0.9; }
+    31	    .btn-info { background: var(--info); color: white; }
+    32	    .btn-danger { background: #e74c3c; color: white; }
+    33	    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    34	    .btn-block { width: 100%; justify-content: center; }
+    35	
+    36	    /* Main */
+    37	    .admin-main { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    38	
+    39	    /* Stats bar */
+    40	    .stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    41	    .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; }
+    42	    .stat-card .value { font-size: 28px; font-weight: 700; color: var(--accent); }
+    43	    .stat-card .label { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+    44	
+    45	    /* Two column layout */
+    46	    .admin-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    47	    @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; } }
+    48	
+    49	    /* Panel */
+    50	    .panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    51	    .panel-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    52	    .panel-header h2 { font-size: 16px; font-weight: 600; }
+    53	    .panel-body { padding: 20px; }
+    54	
+    55	    /* Series list */
+    56	    .series-list { max-height: 500px; overflow-y: auto; }
+    57	    .series-item { display: flex; gap: 12px; padding: 12px; background: var(--bg); border-radius: 10px; margin-bottom: 10px; border: 1px solid var(--border); cursor: pointer; transition: all 0.2s; align-items: center; }
+    58	    .series-item:hover { border-color: var(--accent); }
+    59	    .series-item.active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 5%, var(--bg)); }
+    60	    .series-item img { width: 50px; height: 70px; object-fit: cover; border-radius: 6px; flex-shrink: 0; background: var(--bg-elevated); }
+    61	    .series-item .info { flex: 1; min-width: 0; }
+    62	    .series-item .title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    63	    .series-item .meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    64	    .series-item .actions { display: flex; gap: 6px; }
+    65	    .series-item .actions button { padding: 4px 8px; font-size: 11px; }
+    66	
+    67	    .empty-list { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+    68	    .empty-list p { margin-top: 8px; font-size: 14px; }
+    69	
+    70	    /* Form */
+    71	    .form-group { margin-bottom: 16px; }
+    72	    .form-group label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+    73	    .form-group label .required { color: var(--accent); }
+    74	    .form-group input, .form-group textarea, .form-group select {
+    75	      width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border);
+    76	      background: var(--bg-input); color: var(--text); font-size: 14px; outline: none; transition: all 0.2s; font-family: inherit;
+    77	    }
+    78	    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--accent); }
+    79	    .form-group textarea { min-height: 80px; resize: vertical; }
+    80	    .form-group .hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+    81	    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    82	    @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+    83	
+    84	    /* Chapters manager */
+    85	    .chapters-manager { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+    86	    .chapters-manager h3 { font-size: 15px; margin-bottom: 12px; }
+    87	    .chapter-row { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
+    88	    .chapter-row input { flex: 1; }
+    89	    .chapter-row input.num { flex: 0 0 60px; text-align: center; }
+    90	    .chapter-row .free-check { display: flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 13px; color: var(--text-secondary); }
+    91	    .chapter-row .free-check input { width: auto; }
+    92	    .chapter-row .remove-chap { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px; padding: 4px; }
+    93	    .chapter-row .remove-chap:hover { color: var(--accent); }
+    94	
+    95	    /* Preview */
+    96	    .preview-card { background: var(--bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+    97	    .preview-card img { width: 100%; height: 280px; object-fit: cover; display: block; background: var(--bg-elevated); }
+    98	    .preview-card .preview-body { padding: 16px; }
+    99	    .preview-card .preview-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+   100	    .preview-card .preview-meta { font-size: 13px; color: var(--text-muted); margin-bottom: 10px; }
+   101	    .preview-card .preview-price { font-size: 24px; font-weight: 800; color: var(--accent); }
+   102	    .preview-card .preview-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-top: 10px; }
+   103	
+   104	    /* Export section */
+   105	    .export-section { margin-top: 24px; padding: 20px; background: color-mix(in srgb, var(--success) 5%, var(--bg-card)); border: 1px dashed var(--success); border-radius: 12px; }
+   106	    .export-section h3 { color: var(--success); font-size: 16px; margin-bottom: 10px; }
+   107	    .export-section p { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; }
+   108	    .export-section code { background: var(--bg); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 12px; color: var(--gold); }
+   109	
+   110	    /* Import */
+   111	    .import-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: all 0.2s; }
+   112	    .import-zone:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 3%, transparent); }
+   113	    .import-zone.dragover { border-color: var(--success); background: color-mix(in srgb, var(--success) 5%, transparent); }
+   114	    .import-zone p { color: var(--text-muted); font-size: 14px; }
+   115	    .import-zone input { display: none; }
+   116	
+   117	    /* Toast */
+   118	    .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 3000; display: flex; flex-direction: column; gap: 10px; }
+   119	    .toast { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; padding: 14px 20px; color: var(--text); font-size: 14px; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards; max-width: 350px; }
+   120	    .toast.success { border-color: var(--success); }
+   121	    .toast.error { border-color: var(--accent); }
+   122	    @keyframes toastIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+   123	    @keyframes toastOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(40px); } }
+   124	
+   125	    /* Modal confirm */
+   126	    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
+   127	    .modal-overlay.active { display: flex; }
+   128	    .modal-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; max-width: 400px; width: 100%; text-align: center; }
+   129	    .modal-box h3 { margin-bottom: 12px; }
+   130	    .modal-box p { color: var(--text-secondary); font-size: 14px; margin-bottom: 20px; }
+   131	    .modal-actions { display: flex; gap: 10px; justify-content: center; }
+   132	
+   133	    /* Responsive */
+   134	    @media (max-width: 768px) {
+   135	      .admin-header-inner { flex-direction: column; align-items: flex-start; }
+   136	      .admin-main { padding: 16px; }
+   137	      .stats-bar { grid-template-columns: repeat(2, 1fr); }
+   138	    }
+   139	  </style>
+   140	</head>
+   141	<body>
+   142	
+   143	  <header class="admin-header">
+   144	    <div class="admin-header-inner">
+   145	      <div>
+   146	        <h1>FodeXxx Admin</h1>
+   147	        <p>Gestionnaire de catalogue BD</p>
+   148	      </div>
+   149	      <div class="header-actions">
+   150	        <button class="btn btn-secondary btn-sm" onclick="importCatalogue()">📥 Importer data.json</button>
+   151	        <button class="btn btn-success" onclick="exporterCatalogue()">💾 Exporter data.json</button>
+   152	        <a href="index.html" class="btn btn-secondary btn-sm" style="text-decoration:none;">👁 Voir le site</a>
+   153	      </div>
+   154	    </div>
+   155	  </header>
+   156	
+   157	  <main class="admin-main">
+   158	    <!-- Stats -->
+   159	    <div class="stats-bar">
+   160	      <div class="stat-card"><div class="value" id="statSeries">0</div><div class="label">Series</div></div>
+   161	      <div class="stat-card"><div class="value" id="statChapters">0</div><div class="label">Chapitres</div></div>
+   162	      <div class="stat-card"><div class="value" id="statFree">0</div><div class="label">Chapitres gratuits</div></div>
+   163	      <div class="stat-card"><div class="value" id="statRevenue">0</div><div class="label">FCFA potentiels</div></div>
+   164	    </div>
+   165	
+   166	    <div class="admin-layout">
+   167	      <!-- Left: Series List -->
+   168	      <div class="panel">
+   169	        <div class="panel-header">
+   170	          <h2>📚 Mes series</h2>
+   171	          <button class="btn btn-primary btn-sm" onclick="nouvelleSerie()">+ Nouvelle serie</button>
+   172	        </div>
+   173	        <div class="panel-body">
+   174	          <div id="seriesList" class="series-list">
+   175	            <div class="empty-list">
+   176	              <p>Aucune serie pour le moment.</p>
+   177	              <p>Cliquez sur "Nouvelle serie" pour commencer.</p>
+   178	            </div>
+   179	          </div>
+   180	        </div>
+   181	      </div>
+   182	
+   183	      <!-- Right: Editor -->
+   184	      <div class="panel">
+   185	        <div class="panel-header">
+   186	          <h2>✏️ Editeur</h2>
+   187	          <span id="editorMode" style="font-size:12px;color:var(--text-muted);">Nouvelle serie</span>
+   188	        </div>
+   189	        <div class="panel-body" id="editorPanel">
+   190	          <form id="serieForm" onsubmit="return false;">
+   191	            <input type="hidden" id="editId" value="">
+   192	
+   193	            <div class="form-group">
+   194	              <label>Titre de la serie <span class="required">*</span></label>
+   195	              <input type="text" id="fTitle" placeholder="Ex: Shadow Hunter" oninput="updatePreview()">
+   196	            </div>
+   197	
+   198	            <div class="form-row">
+   199	              <div class="form-group">
+   200	                <label>Genre <span class="required">*</span></label>
+   201	                <select id="fGenre" onchange="updatePreview()">
+   202	                  <option value="action">Action</option>
+   203	                  <option value="romance">Romance</option>
+   204	                  <option value="fantasy">Fantasy</option>
+   205	                  <option value="thriller">Thriller</option>
+   206	                  <option value="comedie">Comedie</option>
+   207	                  <option value="drame">Drame</option>
+   208	                  <option value="horreur">Horreur</option>
+   209	                  <option value="sci-fi">Science-fiction</option>
+   210	                </select>
+   211	              </div>
+   212	              <div class="form-group">
+   213	                <label>Categorie</label>
+   214	                <select id="fCategory" onchange="updatePreview()">
+   215	                  <option value="popular">Populaire</option>
+   216	                  <option value="new">Nouveaute</option>
+   217	                </select>
+   218	              </div>
+   219	            </div>
+   220	
+   221	            <div class="form-row">
+   222	              <div class="form-group">
+   223	                <label>Prix (FCFA) <span class="required">*</span></label>
+   224	                <input type="number" id="fPrice" placeholder="1000" min="0" step="100" oninput="updatePreview()">
+   225	                <p class="hint">0 = gratuit</p>
+   226	              </div>
+   227	              <div class="form-group">
+   228	                <label>Note (0-5)</label>
+   229	                <input type="number" id="fRating" placeholder="4.5" min="0" max="5" step="0.1" value="4.5" oninput="updatePreview()">
+   230	              </div>
+   231	            </div>
+   232	
+   233	            <div class="form-group">
+   234	              <label>Lien couverture (Imgur) <span class="required">*</span></label>
+   235	              <input type="url" id="fCoverUrl" placeholder="https://i.imgur.com/ABC123.jpg" oninput="updatePreview()">
+   236	              <p class="hint">Upload sur imgur.com, copiez le lien direct de l'image</p>
+   237	            </div>
+   238	
+   239	            <div class="form-group">
+   240	              <label>Lien flipbook (AnyFlip) <span class="required">*</span></label>
+   241	              <input type="url" id="fFlipUrl" placeholder="https://online.anyflip.com/votre-compte/lien/index.html">
+   242	              <p class="hint">Lien de votre flipbook 3D sur AnyFlip</p>
+   243	            </div>
+   244	
+   245	            <div class="form-group">
+   246	              <label>Synopsis <span class="required">*</span></label>
+   247	              <textarea id="fDescription" placeholder="Decrivez votre serie en 2-3 phrases..." oninput="updatePreview()"></textarea>
+   248	            </div>
+   249	
+   250	            <!-- Chapters Manager -->
+   251	            <div class="chapters-manager">
+   252	              <h3>📑 Chapitres</h3>
+   253	              <p class="hint" style="margin-bottom:12px;">Le chapitre 1 doit etre gratuit. Les autres sont verrouilles jusqu'a l'achat.</p>
+   254	              <div id="chaptersList">
+   255	                <div class="chapter-row">
+   256	                  <input type="number" class="num" value="1" readonly>
+   257	                  <input type="text" placeholder="Titre du chapitre 1" class="chap-title-input">
+   258	                  <label class="free-check"><input type="checkbox" checked disabled> Gratuit</label>
+   259	                </div>
+   260	              </div>
+   261	              <button type="button" class="btn btn-secondary btn-sm" onclick="ajouterChapitre()" style="margin-top:8px;">+ Ajouter un chapitre</button>
+   262	            </div>
+   263	
+   264	            <div style="display:flex;gap:10px;margin-top:20px;">
+   265	              <button type="button" class="btn btn-primary btn-block" onclick="sauvegarderSerie()">💾 Sauvegarder la serie</button>
+   266	              <button type="button" class="btn btn-danger btn-sm" onclick="supprimerSerie()" id="btnDelete" style="display:none;">🗑 Supprimer</button>
+   267	            </div>
+   268	          </form>
+   269	        </div>
+   270	      </div>
+   271	    </div>
+   272	
+   273	    <!-- Preview Panel -->
+   274	    <div class="panel" style="margin-top:24px;">
+   275	      <div class="panel-header"><h2>👁 Apercu (rendu sur le site)</h2></div>
+   276	      <div class="panel-body">
+   277	        <div style="max-width:300px;">
+   278	          <div class="preview-card" id="previewCard">
+   279	            <img src="" alt="Couverture" id="previewImg" onerror="this.style.background='#242424'">
+   280	            <div class="preview-body">
+   281	              <div class="preview-title" id="previewTitle">Titre</div>
+   282	              <div class="preview-meta" id="previewMeta">Genre • 0 chapitres</div>
+   283	              <div class="preview-price" id="previewPrice">0 FCFA</div>
+   284	              <div class="preview-desc" id="previewDesc">Synopsis...</div>
+   285	            </div>
+   286	          </div>
+   287	        </div>
+   288	      </div>
+   289	    </div>
+   290	
+   291	    <!-- Export -->
+   292	    <div class="export-section">
+   293	      <h3>🚀 Mettre en ligne</h3>
+   294	      <p>Quand vous avez fini, cliquez sur <strong>"Exporter data.json"</strong> en haut de page. Telechargez le fichier et placez-le a cote de <code>index.html</code> sur votre hebergement (Netlify, GitHub Pages, etc.).</p>
+   295	      <button class="btn btn-success btn-block" onclick="exporterCatalogue()" style="max-width:400px;">💾 Telecharger data.json</button>
+   296	    </div>
+   297	  </main>
+   298	
+   299	  <!-- Import Modal -->
+   300	  <div id="importModal" class="modal-overlay" onclick="if(event.target===this)closeImportModal()">
+   301	    <div class="modal-box">
+   302	      <h3>📥 Importer un catalogue</h3>
+   303	      <p>Glissez-deposez votre fichier <code>data.json</code> ici, ou cliquez pour selectionner.</p>
+   304	      <div class="import-zone" id="importZone" onclick="document.getElementById('importFile').click()">
+   305	        <p>Cliquez ou deposez data.json ici</p>
+   306	        <input type="file" id="importFile" accept=".json" onchange="handleImportFile(this)">
+   307	      </div>
+   308	      <div class="modal-actions" style="margin-top:16px;">
+   309	        <button class="btn btn-secondary" onclick="closeImportModal()">Annuler</button>
+   310	      </div>
+   311	    </div>
+   312	  </div>
+   313	
+   314	  <!-- Confirm Modal -->
+   315	  <div id="confirmModal" class="modal-overlay">
+   316	    <div class="modal-box">
+   317	      <h3>⚠️ Confirmation</h3>
+   318	      <p id="confirmText">Voulez-vous vraiment supprimer cette serie ?</p>
+   319	      <div class="modal-actions">
+   320	        <button class="btn btn-secondary" onclick="closeConfirmModal()">Annuler</button>
+   321	        <button class="btn btn-danger" id="confirmBtn">Confirmer</button>
+   322	      </div>
+   323	    </div>
+   324	  </div>
+   325	
+   326	  <div class="toast-container" id="toastContainer"></div>
+   327	
+   328	<script>
+   329	// ===== ETAT =====
+   330	let catalogue = { series: [] };
+   331	let editingId = null;
+   332	let nextId = 1;
+   333	
+   334	// ===== INIT =====
+   335	function init() {
+   336	  // Essayer de charger depuis localStorage (session courante)
+   337	  try {
+   338	    const saved = localStorage.getItem('fodexxx_admin_catalogue');
+   339	    if (saved) {
+   340	      catalogue = JSON.parse(saved);
+   341	      nextId = catalogue.series.reduce((max, s) => Math.max(max, s.id || 0), 0) + 1;
+   342	    }
+   343	  } catch(e) {}
+   344	  renderSeriesList();
+   345	  updateStats();
+   346	  updatePreview();
+   347	  setupDragDrop();
+   348	}
+   349	
+   350	// ===== SERIES LIST =====
+   351	function renderSeriesList() {
+   352	  const container = document.getElementById('seriesList');
+   353	  if (catalogue.series.length === 0) {
+   354	    container.innerHTML = `
+   355	      <div class="empty-list">
+   356	        <p>Aucune serie pour le moment.</p>
+   357	        <p>Cliquez sur "Nouvelle serie" pour commencer.</p>
+   358	      </div>`;
+   359	    return;
+   360	  }
+   361	
+   362	  container.innerHTML = catalogue.series.map(s => `
+   363	    <div class="series-item ${editingId === s.id ? 'active' : ''}" onclick="editerSerie(${s.id})">
+   364	      <img src="${esc(s.coverUrl || '')}" alt="" onerror="this.style.display='none'">
+   365	      <div class="info">
+   366	        <div class="title">${esc(s.title || 'Sans titre')}</div>
+   367	        <div class="meta">${esc(s.genre || '')} • ${s.chapters || 0} chapitres • ${s.price || 0} FCFA</div>
+   368	      </div>
+   369	      <div class="actions" onclick="event.stopPropagation()">
+   370	        <button class="btn btn-primary btn-sm" onclick="editerSerie(${s.id})">Editer</button>
+   371	        <button class="btn btn-danger btn-sm" onclick="confirmerSuppression(${s.id})">X</button>
+   372	      </div>
+   373	    </div>
+   374	  `).join('');
+   375	}
+   376	
+   377	function updateStats() {
+   378	  document.getElementById('statSeries').textContent = catalogue.series.length;
+   379	  const totalChap = catalogue.series.reduce((sum, s) => sum + (s.chapters || 0), 0);
+   380	  document.getElementById('statChapters').textContent = totalChap;
+   381	  const freeChap = catalogue.series.reduce((sum, s) => sum + (s.chapterList || []).filter(c => c.free).length, 0);
+   382	  document.getElementById('statFree').textContent = freeChap;
+   383	  const revenue = catalogue.series.reduce((sum, s) => sum + ((s.price || 0) * (s.chapters || 0)), 0);
+   384	  document.getElementById('statRevenue').textContent = formatPrice(revenue);
+   385	}
+   386	
+   387	// ===== EDITOR =====
+   388	function nouvelleSerie() {
+   389	  editingId = null;
+   390	  document.getElementById('editId').value = '';
+   391	  document.getElementById('editorMode').textContent = 'Nouvelle serie';
+   392	  document.getElementById('btnDelete').style.display = 'none';
+   393	
+   394	  // Reset form
+   395	  document.getElementById('fTitle').value = '';
+   396	  document.getElementById('fGenre').value = 'action';
+   397	  document.getElementById('fCategory').value = 'popular';
+   398	  document.getElementById('fPrice').value = '';
+   399	  document.getElementById('fRating').value = '4.5';
+   400	  document.getElementById('fCoverUrl').value = '';
+   401	  document.getElementById('fFlipUrl').value = '';
+   402	  document.getElementById('fDescription').value = '';
+   403	
+   404	  // Reset chapters
+   405	  document.getElementById('chaptersList').innerHTML = `
+   406	    <div class="chapter-row">
+   407	      <input type="number" class="num" value="1" readonly>
+   408	      <input type="text" placeholder="Titre du chapitre 1" class="chap-title-input">
+   409	      <label class="free-check"><input type="checkbox" checked disabled> Gratuit</label>
+   410	    </div>
+   411	  `;
+   412	
+   413	  renderSeriesList();
+   414	  updatePreview();
+   415	}
+   416	
+   417	function editerSerie(id) {
+   418	  const s = catalogue.series.find(x => x.id === id);
+   419	  if (!s) return;
+   420	
+   421	  editingId = id;
+   422	  document.getElementById('editId').value = id;
+   423	  document.getElementById('editorMode').textContent = 'Modifier: ' + s.title;
+   424	  document.getElementById('btnDelete').style.display = 'inline-flex';
+   425	
+   426	  document.getElementById('fTitle').value = s.title || '';
+   427	  document.getElementById('fGenre').value = s.genre || 'action';
+   428	  document.getElementById('fCategory').value = s.category || 'popular';
+   429	  document.getElementById('fPrice').value = s.price || 0;
+   430	  document.getElementById('fRating').value = s.rating || 4.5;
+   431	  document.getElementById('fCoverUrl').value = s.coverUrl || '';
+   432	  document.getElementById('fFlipUrl').value = s.flipUrl || '';
+   433	  document.getElementById('fDescription').value = s.description || '';
+   434	
+   435	  // Chapters
+   436	  const chList = s.chapterList || [];
+   437	  if (chList.length === 0) {
+   438	    document.getElementById('chaptersList').innerHTML = `
+   439	      <div class="chapter-row">
+   440	        <input type="number" class="num" value="1" readonly>
+   441	        <input type="text" placeholder="Titre du chapitre 1" class="chap-title-input" value="Chapitre 1">
+   442	        <label class="free-check"><input type="checkbox" checked disabled> Gratuit</label>
+   443	      </div>
+   444	    `;
+   445	  } else {
+   446	    document.getElementById('chaptersList').innerHTML = chList.map((ch, idx) => `
+   447	      <div class="chapter-row">
+   448	        <input type="number" class="num" value="${ch.num}" readonly>
+   449	        <input type="text" placeholder="Titre du chapitre ${ch.num}" class="chap-title-input" value="${esc(ch.title || '')}">
+   450	        <label class="free-check">
+   451	          <input type="checkbox" ${ch.free ? 'checked' : ''} ${idx === 0 ? 'disabled' : ''} class="chap-free-check"> 
+   452	          ${idx === 0 ? 'Gratuit' : 'Gratuit'}
+   453	        </label>
+   454	        ${idx > 0 ? `<button type="button" class="remove-chap" onclick="this.parentElement.remove(); updatePreview();">&times;</button>` : ''}
+   455	      </div>
+   456	    `).join('');
+   457	  }
+   458	
+   459	  renderSeriesList();
+   460	  updatePreview();
+   461	}
+   462	
+   463	function ajouterChapitre() {
+   464	  const container = document.getElementById('chaptersList');
+   465	  const rows = container.querySelectorAll('.chapter-row');
+   466	  const nextNum = rows.length + 1;
+   467	
+   468	  const row = document.createElement('div');
+   469	  row.className = 'chapter-row';
+   470	  row.innerHTML = `
+   471	    <input type="number" class="num" value="${nextNum}" readonly>
+   472	    <input type="text" placeholder="Titre du chapitre ${nextNum}" class="chap-title-input">
+   473	    <label class="free-check"><input type="checkbox" class="chap-free-check"> Gratuit</label>
+   474	    <button type="button" class="remove-chap" onclick="this.parentElement.remove(); renumChapters(); updatePreview();">&times;</button>
+   475	  `;
+   476	  container.appendChild(row);
+   477	  updatePreview();
+   478	}
+   479	
+   480	function renumChapters() {
+   481	  const rows = document.querySelectorAll('#chaptersList .chapter-row');
+   482	  rows.forEach((row, idx) => {
+   483	    row.querySelector('.num').value = idx + 1;
+   484	    const titleInput = row.querySelector('.chap-title-input');
+   485	    if (!titleInput.value) titleInput.placeholder = `Titre du chapitre ${idx + 1}`;
+   486	  });
+   487	}
+   488	
+   489	// ===== PREVIEW =====
+   490	function updatePreview() {
+   491	  const title = document.getElementById('fTitle').value || 'Titre de la serie';
+   492	  const genre = document.getElementById('fGenre').value;
+   493	  const price = document.getElementById('fPrice').value || 0;
+   494	  const coverUrl = document.getElementById('fCoverUrl').value;
+   495	  const desc = document.getElementById('fDescription').value || 'Synopsis de la serie...';
+   496	  const rows = document.querySelectorAll('#chaptersList .chapter-row');
+   497	
+   498	  document.getElementById('previewTitle').textContent = title;
+   499	  document.getElementById('previewMeta').textContent = `${genre} • ${rows.length} chapitre(s)`;
+   500	  document.getElementById('previewPrice').textContent = price == 0 ? 'Gratuit' : `${formatPrice(price)} FCFA`;
+   501	  document.getElementById('previewPrice').style.color = price == 0 ? 'var(--success)' : 'var(--accent)';
+   502	  document.getElementById('previewDesc').textContent = desc;
+   503	
+   504	  const img = document.getElementById('previewImg');
+   505	  if (coverUrl) {
+   506	    img.src = coverUrl;
+   507	    img.style.display = 'block';
+   508	  } else {
+   509	    img.style.background = '#242424';
+   510	    img.style.display = 'flex';
+   511	    img.style.alignItems = 'center';
+   512	    img.style.justifyContent = 'center';
+   513	    img.src = '';
+   514	    img.alt = 'Apercu couverture';
+   515	  }
+   516	}
+   517	
+   518	// ===== SAVE =====
+   519	function sauvegarderSerie() {
+   520	  const title = document.getElementById('fTitle').value.trim();
+   521	  const genre = document.getElementById('fGenre').value;
+   522	  const category = document.getElementById('fCategory').value;
+   523	  const price = parseInt(document.getElementById('fPrice').value) || 0;
+   524	  const rating = parseFloat(document.getElementById('fRating').value) || 4.5;
+   525	  const coverUrl = document.getElementById('fCoverUrl').value.trim();
+   526	  const flipUrl = document.getElementById('fFlipUrl').value.trim();
+   527	  const description = document.getElementById('fDescription').value.trim();
+   528	
+   529	  // Validation
+   530	  if (!title) { showToast('Le titre est obligatoire.', 'error'); return; }
+   531	  if (!coverUrl) { showToast('Le lien de couverture est obligatoire.', 'error'); return; }
+   532	  if (!flipUrl) { showToast('Le lien AnyFlip est obligatoire.', 'error'); return; }
+   533	  if (!description) { showToast('Le synopsis est obligatoire.', 'error'); return; }
+   534	
+   535	  // Collect chapters
+   536	  const chapterRows = document.querySelectorAll('#chaptersList .chapter-row');
+   537	  const chapterList = [];
+   538	  chapterRows.forEach((row, idx) => {
+   539	    const titleChap = row.querySelector('.chap-title-input').value.trim() || `Chapitre ${idx + 1}`;
+   540	    const free = idx === 0 ? true : row.querySelector('.chap-free-check')?.checked || false;
+   541	    chapterList.push({ num: idx + 1, title: titleChap, free: free });
+   542	  });
+   543	
+   544	  const serie = {
+   545	    id: editingId || nextId++,
+   546	    title, genre, category, price, rating, coverUrl, flipUrl, description,
+   547	    chapters: chapterList.length,
+   548	    reviews: 0,
+   549	    chapterList
+   550	  };
+   551	
+   552	  if (editingId) {
+   553	    const idx = catalogue.series.findIndex(s => s.id === editingId);
+   554	    if (idx >= 0) catalogue.series[idx] = serie;
+   555	    showToast('Serie mise a jour !', 'success');
+   556	  } else {
+   557	    catalogue.series.push(serie);
+   558	    showToast('Serie ajoutee !', 'success');
+   559	  }
+   560	
+   561	  // Save to localStorage
+   562	  try { localStorage.setItem('fodexxx_admin_catalogue', JSON.stringify(catalogue)); } catch(e) {}
+   563	
+   564	  renderSeriesList();
+   565	  updateStats();
+   566	  updatePreview();
+   567	}
+   568	
+   569	// ===== DELETE =====
+   570	function confirmerSuppression(id) {
+   571	  const s = catalogue.series.find(x => x.id === id);
+   572	  if (!s) return;
+   573	  document.getElementById('confirmText').textContent = `Supprimer "${s.title}" ? Cette action est irreversible.`;
+   574	  document.getElementById('confirmBtn').onclick = () => { executerSuppression(id); };
+   575	  document.getElementById('confirmModal').classList.add('active');
+   576	}
+   577	
+   578	function executerSuppression(id) {
+   579	  catalogue.series = catalogue.series.filter(s => s.id !== id);
+   580	  if (editingId === id) nouvelleSerie();
+   581	  try { localStorage.setItem('fodexxx_admin_catalogue', JSON.stringify(catalogue)); } catch(e) {}
+   582	  renderSeriesList();
+   583	  updateStats();
+   584	  closeConfirmModal();
+   585	  showToast('Serie supprimee.', 'success');
+   586	}
+   587	
+   588	function closeConfirmModal() {
+   589	  document.getElementById('confirmModal').classList.remove('active');
+   590	}
+   591	
+   592	// ===== EXPORT =====
+   593	function exporterCatalogue() {
+   594	  if (catalogue.series.length === 0) {
+   595	    showToast('Aucune serie a exporter. Ajoutez-en d'abord.', 'error');
+   596	    return;
+   597	  }
+   598	
+   599	  const data = {
+   600	    _comment: "FICHIER DE DONNEES - FodeXxx BD. Genere par admin.html.",
+   601	    series: catalogue.series
+   602	  };
+   603	
+   604	  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+   605	  const url = URL.createObjectURL(blob);
+   606	  const a = document.createElement('a');
+   607	  a.href = url;
+   608	  a.download = 'data.json';
+   609	  document.body.appendChild(a);
+   610	  a.click();
+   611	  document.body.removeChild(a);
+   612	  URL.revokeObjectURL(url);
+   613	
+   614	  showToast('data.json telecharge ! Placez-le a cote de index.html.', 'success');
+   615	}
+   616	
+   617	// ===== IMPORT =====
+   618	function importCatalogue() {
+   619	  document.getElementById('importModal').classList.add('active');
+   620	}
+   621	
+   622	function closeImportModal() {
+   623	  document.getElementById('importModal').classList.remove('active');
+   624	  document.getElementById('importFile').value = '';
+   625	}
+   626	
+   627	function handleImportFile(input) {
+   628	  const file = input.files[0];
+   629	  if (!file) return;
+   630	
+   631	  const reader = new FileReader();
+   632	  reader.onload = function(e) {
+   633	    try {
+   634	      const data = JSON.parse(e.target.result);
+   635	      if (data.series && Array.isArray(data.series)) {
+   636	        catalogue = data;
+   637	        nextId = catalogue.series.reduce((max, s) => Math.max(max, s.id || 0), 0) + 1;
+   638	        try { localStorage.setItem('fodexxx_admin_catalogue', JSON.stringify(catalogue)); } catch(e) {}
+   639	        renderSeriesList();
+   640	        updateStats();
+   641	        nouvelleSerie();
+   642	        closeImportModal();
+   643	        showToast(`Catalogue importe : ${catalogue.series.length} serie(s)`, 'success');
+   644	      } else {
+   645	        showToast('Fichier invalide. Structure attendue: { series: [...] }', 'error');
+   646	      }
+   647	    } catch(err) {
+   648	      showToast('Erreur de lecture du fichier JSON.', 'error');
+   649	    }
+   650	  };
+   651	  reader.readAsText(file);
+   652	}
+   653	
+   654	function setupDragDrop() {
+   655	  const zone = document.getElementById('importZone');
+   656	  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+   657	    zone.addEventListener(evt, (e) => {
+   658	      e.preventDefault();
+   659	      e.stopPropagation();
+   660	    });
+   661	  });
+   662	  ['dragenter', 'dragover'].forEach(evt => {
+   663	    zone.addEventListener(evt, () => zone.classList.add('dragover'));
+   664	  });
+   665	  ['dragleave', 'drop'].forEach(evt => {
+   666	    zone.addEventListener(evt, () => zone.classList.remove('dragover'));
+   667	  });
+   668	  zone.addEventListener('drop', (e) => {
+   669	    const files = e.dataTransfer.files;
+   670	    if (files.length > 0) {
+   671	      document.getElementById('importFile').files = files;
+   672	      handleImportFile(document.getElementById('importFile'));
+   673	    }
+   674	  });
+   675	}
+   676	
+   677	// ===== TOAST =====
+   678	function showToast(msg, type = 'success') {
+   679	  const c = document.getElementById('toastContainer');
+   680	  const t = document.createElement('div');
+   681	  t.className = `toast ${type}`;
+   682	  t.innerHTML = `${type === 'success' ? '✓' : '✕'} <span>${esc(msg)}</span>`;
+   683	  c.appendChild(t);
+   684	  setTimeout(() => t.remove(), 3000);
+   685	}
+   686	
+   687	function esc(t) { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+   688	function formatPrice(p) { if (p === undefined || p === null) return '0'; return p.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' '); }
+   689	
+   690	window.addEventListener('DOMContentLoaded', init);
+   691	</script>
+   692	
+   693	</body>
+   694	</html>
