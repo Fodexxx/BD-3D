@@ -5,136 +5,604 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FodeXxx Admin - Gestionnaire de Catalogue</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     :root {
-      --bg: #0d0d0d; --bg-card: #1a1a1a; --bg-elevated: #242424; --bg-input: #2a2a2a;
-      --border: #333; --border-focus: #555;
-      --text: #fff; --text-secondary: #a0a0a0; --text-muted: #666;
-      --accent: #ff4757; --accent-hover: #ff6b81; --success: #2ed573; --gold: #ffa502; --info: #3498db;
+      --bg: #0d0d0d;
+      --bg-card: #1a1a1a;
+      --bg-elevated: #242424;
+      --bg-input: #2a2a2a;
+      --border: #333;
+      --border-focus: #555;
+      --text: #fff;
+      --text-secondary: #a0a0a0;
+      --text-muted: #666;
+      --accent: #ff4757;
+      --accent-hover: #ff6b81;
+      --success: #2ed573;
+      --gold: #ffa502;
+      --info: #3498db;
     }
-    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.6; min-height: 100vh; }
 
-    /* Header */
-    .admin-header { background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 16px 24px; position: sticky; top: 0; z-index: 100; }
-    .admin-header-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
-    .admin-header h1 { font-size: 22px; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .admin-header p { color: var(--text-muted); font-size: 13px; }
-    .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-
-    .btn { padding: 10px 18px; border-radius: 10px; border: none; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
-    .btn-primary { background: var(--accent); color: white; }
-    .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
-    .btn-secondary { background: var(--bg-elevated); color: var(--text); border: 1px solid var(--border); }
-    .btn-secondary:hover { background: var(--border); }
-    .btn-success { background: var(--success); color: #000; font-weight: 600; }
-    .btn-success:hover { opacity: 0.9; }
-    .btn-info { background: var(--info); color: white; }
-    .btn-danger { background: #e74c3c; color: white; }
-    .btn-sm { padding: 6px 12px; font-size: 12px; }
-    .btn-block { width: 100%; justify-content: center; }
-
-    /* Main */
-    .admin-main { max-width: 1200px; margin: 0 auto; padding: 24px; }
-
-    /* Stats bar */
-    .stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; }
-    .stat-card .value { font-size: 28px; font-weight: 700; color: var(--accent); }
-    .stat-card .label { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
-
-    /* Two column layout */
-    .admin-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-    @media (max-width: 900px) { .admin-layout { grid-template-columns: 1fr; } }
-
-    /* Panel */
-    .panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
-    .panel-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-    .panel-header h2 { font-size: 16px; font-weight: 600; }
-    .panel-body { padding: 20px; }
-
-    /* Series list */
-    .series-list { max-height: 500px; overflow-y: auto; }
-    .series-item { display: flex; gap: 12px; padding: 12px; background: var(--bg); border-radius: 10px; margin-bottom: 10px; border: 1px solid var(--border); cursor: pointer; transition: all 0.2s; align-items: center; }
-    .series-item:hover { border-color: var(--accent); }
-    .series-item.active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 5%, var(--bg)); }
-    .series-item img { width: 50px; height: 70px; object-fit: cover; border-radius: 6px; flex-shrink: 0; background: var(--bg-elevated); }
-    .series-item .info { flex: 1; min-width: 0; }
-    .series-item .title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .series-item .meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-    .series-item .actions { display: flex; gap: 6px; }
-    .series-item .actions button { padding: 4px 8px; font-size: 11px; }
-
-    .empty-list { text-align: center; padding: 40px 20px; color: var(--text-muted); }
-    .empty-list p { margin-top: 8px; font-size: 14px; }
-
-    /* Form */
-    .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--text-secondary); font-weight: 500; }
-    .form-group label .required { color: var(--accent); }
-    .form-group input, .form-group textarea, .form-group select {
-      width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border);
-      background: var(--bg-input); color: var(--text); font-size: 14px; outline: none; transition: all 0.2s; font-family: inherit;
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
     }
-    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--accent); }
-    .form-group textarea { min-height: 80px; resize: vertical; }
-    .form-group .hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    @media (max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
 
-    /* Chapters manager */
-    .chapters-manager { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
-    .chapters-manager h3 { font-size: 15px; margin-bottom: 12px; }
-    .chapter-row { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
-    .chapter-row input { flex: 1; }
-    .chapter-row input.num { flex: 0 0 60px; text-align: center; }
-    .chapter-row .free-check { display: flex; align-items: center; gap: 6px; white-space: nowrap; font-size: 13px; color: var(--text-secondary); }
-    .chapter-row .free-check input { width: auto; }
-    .chapter-row .remove-chap { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 18px; padding: 4px; }
-    .chapter-row .remove-chap:hover { color: var(--accent); }
+    .admin-header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
 
-    /* Preview */
-    .preview-card { background: var(--bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
-    .preview-card img { width: 100%; height: 280px; object-fit: cover; display: block; background: var(--bg-elevated); }
-    .preview-card .preview-body { padding: 16px; }
-    .preview-card .preview-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
-    .preview-card .preview-meta { font-size: 13px; color: var(--text-muted); margin-bottom: 10px; }
-    .preview-card .preview-price { font-size: 24px; font-weight: 800; color: var(--accent); }
-    .preview-card .preview-desc { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-top: 10px; }
+    .admin-header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
 
-    /* Export section */
-    .export-section { margin-top: 24px; padding: 20px; background: color-mix(in srgb, var(--success) 5%, var(--bg-card)); border: 1px dashed var(--success); border-radius: 12px; }
-    .export-section h3 { color: var(--success); font-size: 16px; margin-bottom: 10px; }
-    .export-section p { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; }
-    .export-section code { background: var(--bg); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 12px; color: var(--gold); }
+    .admin-header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
-    /* Import */
-    .import-zone { border: 2px dashed var(--border); border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: all 0.2s; }
-    .import-zone:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 3%, transparent); }
-    .import-zone.dragover { border-color: var(--success); background: color-mix(in srgb, var(--success) 5%, transparent); }
-    .import-zone p { color: var(--text-muted); font-size: 14px; }
-    .import-zone input { display: none; }
+    .admin-header p {
+      color: var(--text-muted);
+      font-size: 13px;
+    }
 
-    /* Toast */
-    .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 3000; display: flex; flex-direction: column; gap: 10px; }
-    .toast { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; padding: 14px 20px; color: var(--text); font-size: 14px; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards; max-width: 350px; }
-    .toast.success { border-color: var(--success); }
-    .toast.error { border-color: var(--accent); }
-    @keyframes toastIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
-    @keyframes toastOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(40px); } }
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
 
-    /* Modal confirm */
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
-    .modal-overlay.active { display: flex; }
-    .modal-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; max-width: 400px; width: 100%; text-align: center; }
-    .modal-box h3 { margin-bottom: 12px; }
-    .modal-box p { color: var(--text-secondary); font-size: 14px; margin-bottom: 20px; }
-    .modal-actions { display: flex; gap: 10px; justify-content: center; }
+    .btn {
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all .2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-    /* Responsive */
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--bg-elevated);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: #000;
+      font-weight: 600;
+    }
+
+    .btn-success:hover {
+      opacity: .9;
+    }
+
+    .btn-info {
+      background: var(--info);
+      color: #fff;
+    }
+
+    .btn-danger {
+      background: #e74c3c;
+      color: #fff;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    .btn-block {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .admin-main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-card .value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .stat-card .label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .admin-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .admin-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-header h2 {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .panel-body {
+      padding: 20px;
+    }
+
+    .series-list {
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .series-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      background: var(--bg);
+      border-radius: 10px;
+      margin-bottom: 10px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all .2s;
+      align-items: center;
+    }
+
+    .series-item:hover {
+      border-color: var(--accent);
+    }
+
+    .series-item.active {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 5%, var(--bg));
+    }
+
+    .series-item img {
+      width: 50px;
+      height: 70px;
+      object-fit: cover;
+      border-radius: 6px;
+      flex-shrink: 0;
+      background: var(--bg-elevated);
+    }
+
+    .series-item .info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .series-item .title {
+      font-size: 14px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .series-item .meta {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .series-item .actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .series-item .actions button {
+      padding: 4px 8px;
+      font-size: 11px;
+    }
+
+    .empty-list {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+
+    .empty-list p {
+      margin-top: 8px;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .form-group label .required {
+      color: var(--accent);
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg-input);
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: all .2s;
+      font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      border-color: var(--accent);
+    }
+
+    .form-group textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .form-group .hint {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 600px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .chapters-manager {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .chapters-manager h3 {
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+
+    .chapter-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .chapter-row input {
+      flex: 1;
+    }
+
+    .chapter-row input.num {
+      flex: 0 0 60px;
+      text-align: center;
+    }
+
+    .chapter-row .free-check {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .chapter-row .free-check input {
+      width: auto;
+    }
+
+    .chapter-row .remove-chap {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+    }
+
+    .chapter-row .remove-chap:hover {
+      color: var(--accent);
+    }
+
+    .preview-card {
+      background: var(--bg);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .preview-card img {
+      width: 100%;
+      height: 280px;
+      object-fit: cover;
+      display: block;
+      background: var(--bg-elevated);
+    }
+
+    .preview-card .preview-body {
+      padding: 16px;
+    }
+
+    .preview-card .preview-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .preview-card .preview-meta {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .preview-card .preview-price {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .preview-card .preview-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-top: 10px;
+    }
+
+    .export-section {
+      margin-top: 24px;
+      padding: 20px;
+      background: color-mix(in srgb, var(--success) 5%, var(--bg-card));
+      border: 1px dashed var(--success);
+      border-radius: 12px;
+    }
+
+    .export-section h3 {
+      color: var(--success);
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .export-section p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .export-section code {
+      background: var(--bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+      color: var(--gold);
+    }
+
+    .import-zone {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: all .2s;
+    }
+
+    .import-zone:hover {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 3%, transparent);
+    }
+
+    .import-zone.dragover {
+      border-color: var(--success);
+      background: color-mix(in srgb, var(--success) 5%, transparent);
+    }
+
+    .import-zone p {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .import-zone input {
+      display: none;
+    }
+
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 3000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 20px;
+      color: var(--text);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .5);
+      animation: toastIn .3s ease, toastOut .3s ease 2.7s forwards;
+      max-width: 350px;
+    }
+
+    .toast.success {
+      border-color: var(--success);
+    }
+
+    .toast.error {
+      border-color: var(--accent);
+    }
+
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translateX(40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes toastOut {
+      from {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      to {
+        opacity: 0;
+        transform: translateX(40px);
+      }
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .8);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .modal-box h3 {
+      margin-bottom: 12px;
+    }
+
+    .modal-box p {
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
     @media (max-width: 768px) {
-      .admin-header-inner { flex-direction: column; align-items: flex-start; }
-      .admin-main { padding: 16px; }
-      .stats-bar { grid-template-columns: repeat(2, 1fr); }
+      .admin-header-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .admin-main {
+        padding: 16px;
+      }
+      .stats-bar {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
   </style>
 </head>
@@ -149,49 +617,58 @@
       <div class="header-actions">
         <button class="btn btn-secondary btn-sm" onclick="importCatalogue()">📥 Importer data.json</button>
         <button class="btn btn-success" onclick="exporterCatalogue()">💾 Exporter data.json</button>
-        <a href="index.html" class="btn btn-secondary btn-sm" style="text-decoration:none;">👁 Voir le site</a>
+        <a href="index.html" class="btn btn-secondary btn-sm" style="text-decoration:none">👁 Voir le site</a>
       </div>
     </div>
   </header>
 
   <main class="admin-main">
-    <!-- Stats -->
     <div class="stats-bar">
-      <div class="stat-card"><div class="value" id="statSeries">0</div><div class="label">Series</div></div>
-      <div class="stat-card"><div class="value" id="statChapters">0</div><div class="label">Chapitres</div></div>
-      <div class="stat-card"><div class="value" id="statFree">0</div><div class="label">Chapitres gratuits</div></div>
-      <div class="stat-card"><div class="value" id="statRevenue">0</div><div class="label">FCFA potentiels</div></div>
+      <div class="stat-card">
+        <div class="value" id="statSeries">0</div>
+        <div class="label">Séries</div>
+      </div>
+      <div class="stat-card">
+        <div class="value" id="statChapters">0</div>
+        <div class="label">Chapitres</div>
+      </div>
+      <div class="stat-card">
+        <div class="value" id="statFree">0</div>
+        <div class="label">Chapitres gratuits</div>
+      </div>
+      <div class="stat-card">
+        <div class="value" id="statRevenue">0</div>
+        <div class="label">FCFA potentiels</div>
+      </div>
     </div>
 
     <div class="admin-layout">
-      <!-- Left: Series List -->
       <div class="panel">
         <div class="panel-header">
-          <h2>📚 Mes series</h2>
-          <button class="btn btn-primary btn-sm" onclick="nouvelleSerie()">+ Nouvelle serie</button>
+          <h2>📚 Mes séries</h2>
+          <button class="btn btn-primary btn-sm" onclick="nouvelleSerie()">+ Nouvelle série</button>
         </div>
         <div class="panel-body">
-          <div id="seriesList" class="series-list">
+          <div class="series-list" id="seriesList">
             <div class="empty-list">
-              <p>Aucune serie pour le moment.</p>
-              <p>Cliquez sur "Nouvelle serie" pour commencer.</p>
+              <p>Aucune série pour le moment.</p>
+              <p>Cliquez sur « Nouvelle série » pour commencer.</p>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Right: Editor -->
       <div class="panel">
         <div class="panel-header">
-          <h2>✏️ Editeur</h2>
-          <span id="editorMode" style="font-size:12px;color:var(--text-muted);">Nouvelle serie</span>
+          <h2>✏️ Éditeur</h2>
+          <span id="editorMode" style="font-size:12px; color:var(--text-muted)">Nouvelle série</span>
         </div>
         <div class="panel-body" id="editorPanel">
-          <form id="serieForm" onsubmit="return false;">
+          <form id="serieForm" onsubmit="return false">
             <input type="hidden" id="editId" value="">
-
+            
             <div class="form-group">
-              <label>Titre de la serie <span class="required">*</span></label>
+              <label>Titre de la série <span class="required">*</span></label>
               <input type="text" id="fTitle" placeholder="Ex: Shadow Hunter" oninput="updatePreview()">
             </div>
 
@@ -203,17 +680,17 @@
                   <option value="romance">Romance</option>
                   <option value="fantasy">Fantasy</option>
                   <option value="thriller">Thriller</option>
-                  <option value="comedie">Comedie</option>
+                  <option value="comedie">Comédie</option>
                   <option value="drame">Drame</option>
                   <option value="horreur">Horreur</option>
                   <option value="sci-fi">Science-fiction</option>
                 </select>
               </div>
               <div class="form-group">
-                <label>Categorie</label>
+                <label>Catégorie</label>
                 <select id="fCategory" onchange="updatePreview()">
                   <option value="popular">Populaire</option>
-                  <option value="new">Nouveaute</option>
+                  <option value="new">Nouveauté</option>
                 </select>
               </div>
             </div>
@@ -244,37 +721,39 @@
 
             <div class="form-group">
               <label>Synopsis <span class="required">*</span></label>
-              <textarea id="fDescription" placeholder="Decrivez votre serie en 2-3 phrases..." oninput="updatePreview()"></textarea>
+              <textarea id="fDescription" placeholder="Décrivez votre série en 2-3 phrases..." oninput="updatePreview()"></textarea>
             </div>
 
-            <!-- Chapters Manager -->
             <div class="chapters-manager">
               <h3>📑 Chapitres</h3>
-              <p class="hint" style="margin-bottom:12px;">Le chapitre 1 doit etre gratuit. Les autres sont verrouilles jusqu'a l'achat.</p>
+              <p class="hint" style="margin-bottom:12px">Le chapitre 1 doit être gratuit. Les autres sont verrouillés jusqu'à l'achat.</p>
               <div id="chaptersList">
                 <div class="chapter-row">
                   <input type="number" class="num" value="1" readonly>
                   <input type="text" placeholder="Titre du chapitre 1" class="chap-title-input">
-                  <label class="free-check"><input type="checkbox" checked disabled> Gratuit</label>
+                  <label class="free-check">
+                    <input type="checkbox" checked disabled> Gratuit
+                  </label>
                 </div>
               </div>
-              <button type="button" class="btn btn-secondary btn-sm" onclick="ajouterChapitre()" style="margin-top:8px;">+ Ajouter un chapitre</button>
+              <button type="button" class="btn btn-secondary btn-sm" onclick="ajouterChapitre()" style="margin-top:8px">+ Ajouter un chapitre</button>
             </div>
 
-            <div style="display:flex;gap:10px;margin-top:20px;">
-              <button type="button" class="btn btn-primary btn-block" onclick="sauvegarderSerie()">💾 Sauvegarder la serie</button>
-              <button type="button" class="btn btn-danger btn-sm" onclick="supprimerSerie()" id="btnDelete" style="display:none;">🗑 Supprimer</button>
+            <div style="display:flex; gap:10px; margin-top:20px">
+              <button type="button" class="btn btn-primary btn-block" onclick="sauvegarderSerie()">💾 Sauvegarder la série</button>
+              <button type="button" class="btn btn-danger btn-sm" onclick="supprimerSerie()" id="btnDelete" style="display:none">🗑 Supprimer</button>
             </div>
           </form>
         </div>
       </div>
     </div>
 
-    <!-- Preview Panel -->
-    <div class="panel" style="margin-top:24px;">
-      <div class="panel-header"><h2>👁 Apercu (rendu sur le site)</h2></div>
+    <div class="panel" style="margin-top:24px">
+      <div class="panel-header">
+        <h2>👁 Aperçu (rendu sur le site)</h2>
+      </div>
       <div class="panel-body">
-        <div style="max-width:300px;">
+        <div style="max-width:300px">
           <div class="preview-card" id="previewCard">
             <img src="" alt="Couverture" id="previewImg" onerror="this.style.background='#242424'">
             <div class="preview-body">
@@ -288,34 +767,31 @@
       </div>
     </div>
 
-    <!-- Export -->
     <div class="export-section">
       <h3>🚀 Mettre en ligne</h3>
-      <p>Quand vous avez fini, cliquez sur <strong>"Exporter data.json"</strong> en haut de page. Telechargez le fichier et placez-le a cote de <code>index.html</code> sur votre hebergement (Netlify, GitHub Pages, etc.).</p>
-      <button class="btn btn-success btn-block" onclick="exporterCatalogue()" style="max-width:400px;">💾 Telecharger data.json</button>
+      <p>Quand vous avez fini, cliquez sur <strong>« Exporter data.json »</strong> en haut de page. Téléchargez le fichier et placez-le à côté de <code>index.html</code> sur votre hébergement (Netlify, GitHub Pages, etc.).</p>
+      <button class="btn btn-success btn-block" onclick="exporterCatalogue()" style="max-width:400px">💾 Télécharger data.json</button>
     </div>
   </main>
 
-  <!-- Import Modal -->
-  <div id="importModal" class="modal-overlay" onclick="if(event.target===this)closeImportModal()">
+  <div class="modal-overlay" id="importModal" onclick="if(event.target===this)closeImportModal()">
     <div class="modal-box">
       <h3>📥 Importer un catalogue</h3>
-      <p>Glissez-deposez votre fichier <code>data.json</code> ici, ou cliquez pour selectionner.</p>
+      <p>Glissez-déposez votre fichier <code>data.json</code> ici, ou cliquez pour sélectionner.</p>
       <div class="import-zone" id="importZone" onclick="document.getElementById('importFile').click()">
-        <p>Cliquez ou deposez data.json ici</p>
+        <p>Cliquez ou déposez data.json ici</p>
         <input type="file" id="importFile" accept=".json" onchange="handleImportFile(this)">
       </div>
-      <div class="modal-actions" style="margin-top:16px;">
+      <div class="modal-actions" style="margin-top:16px">
         <button class="btn btn-secondary" onclick="closeImportModal()">Annuler</button>
       </div>
     </div>
   </div>
 
-  <!-- Confirm Modal -->
-  <div id="confirmModal" class="modal-overlay">
+  <div class="modal-overlay" id="confirmModal">
     <div class="modal-box">
       <h3>⚠️ Confirmation</h3>
-      <p id="confirmText">Voulez-vous vraiment supprimer cette serie ?</p>
+      <p id="confirmText">Voulez-vous vraiment supprimer cette série ?</p>
       <div class="modal-actions">
         <button class="btn btn-secondary" onclick="closeConfirmModal()">Annuler</button>
         <button class="btn btn-danger" id="confirmBtn">Confirmer</button>
@@ -325,254 +801,359 @@
 
   <div class="toast-container" id="toastContainer"></div>
 
-<script>
-// ===== CONFIGURATION SUPABASE =====
-const SUPABASE_URL = "https://wxncjpvglvxsfskfsqey.supabase.co";
-const SUPABASE_KEY = "sb_publishable_0Wui3p23IR6igGQbmjjYnw_r9xBHuv6";
+  <script>
+    let catalogue = { series: [] };
+    let editingId = null;
+    let nextId = 1;
+    let deleteTargetId = null;
 
-// ===== ETAT =====
-let catalogue = { series: [] };
-let editingId = null;
-let nextId = 1;
-
-// ===== INIT =====
-function init() {
-  // Essayer de charger depuis localStorage (session courante)
-  try {
-    const saved = localStorage.getItem('fodexxx_admin_catalogue');
-    if (saved) {
-      catalogue = JSON.parse(saved);
-      nextId = catalogue.series.reduce((max, s) => Math.max(max, s.id || 0), 0) + 1;
+    function init() {
+      try {
+        const saved = localStorage.getItem('fodexxx_admin_catalogue');
+        if (saved) {
+          catalogue = JSON.parse(saved);
+          nextId = catalogue.series.reduce((max, s) => Math.max(max, s.id || 0), 0) + 1;
+        }
+      } catch (e) {}
+      renderSeriesList();
+      updateStats();
+      updatePreview();
+      setupDragDrop();
     }
-  } catch(e) {}
-  renderSeriesList();
-  updateStats();
-  updatePreview();
-  setupDragDrop();
-}
 
-// ===== SERIES LIST =====
-function renderSeriesList() {
-  const container = document.getElementById('seriesList');
-  if (catalogue.series.length === 0) {
-    container.innerHTML = `
-      <div class="empty-list">
-        <p>Aucune serie pour le moment.</p>
-        <p>Cliquez sur "Nouvelle serie" pour commencer.</p>
-      </div>`;
-    return;
-  }
+    function esc(t) {
+      if (!t) return '';
+      const d = document.createElement('div');
+      d.textContent = t;
+      return d.innerHTML;
+    }
 
-  container.innerHTML = catalogue.series.map(s => `
-    <div class="series-item ${editingId === s.id ? 'active' : ''}" onclick="editerSerie(${s.id})">
-      <img src="${esc(s.coverUrl || '')}" alt="" onerror="this.style.display='none'">
-      <div class="info">
-        <div class="title">${esc(s.title || 'Sans titre')}</div>
-        <div class="meta">${esc(s.genre || '')} • ${s.chapters || 0} chapitres • ${s.price || 0} FCFA</div>
-      </div>
-      <div class="actions" onclick="event.stopPropagation()">
-        <button class="btn btn-primary btn-sm" onclick="editerSerie(${s.id})">Editer</button>
-        <button class="btn btn-danger btn-sm" onclick="confirmerSuppression(${s.id})">X</button>
-      </div>
-    </div>
-  `).join('');
-}
+    function formatPrice(p) {
+      return new Intl.NumberFormat('fr-FR').format(p || 0);
+    }
 
-function updateStats() {
-  document.getElementById('statSeries').textContent = catalogue.series.length;
-  const totalChap = catalogue.series.reduce((sum, s) => sum + (s.chapters || 0), 0);
-  document.getElementById('statChapters').textContent = totalChap;
-  const freeChap = catalogue.series.reduce((sum, s) => sum + (s.chapterList || []).filter(c => c.free).length, 0);
-  document.getElementById('statFree').textContent = freeChap;
-  const revenue = catalogue.series.reduce((sum, s) => sum + ((s.price || 0) * (s.chapters || 0)), 0);
-  document.getElementById('statRevenue').textContent = formatPrice(revenue);
-}
+    function showToast(msg, type = 'success') {
+      const c = document.getElementById('toastContainer');
+      const t = document.createElement('div');
+      t.className = 'toast ' + type;
+      t.innerHTML = (type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ') + ' <span>' + esc(msg) + '</span>';
+      c.appendChild(t);
+      setTimeout(() => {
+        t.style.animation = 'toastOut .3s ease forwards';
+        setTimeout(() => t.remove(), 300);
+      }, 2700);
+    }
 
-// ===== EDITOR =====
-function nouvelleSerie() {
-  editingId = null;
-  document.getElementById('editId').value = '';
-  document.getElementById('editorMode').textContent = 'Nouvelle serie';
-  document.getElementById('btnDelete').style.display = 'none';
+    function renderSeriesList() {
+      const container = document.getElementById('seriesList');
+      if (catalogue.series.length === 0) {
+        container.innerHTML = '<div class="empty-list"><p>Aucune série pour le moment.</p><p>Cliquez sur « Nouvelle série » pour commencer.</p></div>';
+        return;
+      }
+      container.innerHTML = catalogue.series.map(s => `
+        <div class="series-item ${editingId === s.id ? 'active' : ''}" onclick="editerSerie(${s.id})">
+          <img src="${esc(s.coverUrl || '')}" alt="" onerror="this.style.display='none'">
+          <div class="info">
+            <div class="title">${esc(s.title || 'Sans titre')}</div>
+            <div class="meta">${esc(s.genre || '')} • ${s.chapters || 0} chapitres • ${s.price || 0} FCFA</div>
+          </div>
+          <div class="actions" onclick="event.stopPropagation()">
+            <button class="btn btn-primary btn-sm" onclick="editerSerie(${s.id})">Éditer</button>
+            <button class="btn btn-danger btn-sm" onclick="confirmerSuppression(${s.id})">X</button>
+          </div>
+        </div>
+      `).join('');
+    }
 
-  // Reset form
-  document.getElementById('fTitle').value = '';
-  document.getElementById('fGenre').value = 'action';
-  document.getElementById('fCategory').value = 'popular';
-  document.getElementById('fPrice').value = '';
-  document.getElementById('fRating').value = '4.5';
-  document.getElementById('fCoverUrl').value = '';
-  document.getElementById('fFlipUrl').value = '';
-  document.getElementById('fDescription').value = '';
+    function updateStats() {
+      document.getElementById('statSeries').textContent = catalogue.series.length;
+      const totalChap = catalogue.series.reduce((sum, s) => sum + (s.chapters || 0), 0);
+      document.getElementById('statChapters').textContent = totalChap;
+      const freeChap = catalogue.series.reduce((sum, s) => sum + (s.chapterList || []).filter(c => c.free).length, 0);
+      document.getElementById('statFree').textContent = freeChap;
+      const revenue = catalogue.series.reduce((sum, s) => sum + ((s.price || 0) * (s.chapters || 0)), 0);
+      document.getElementById('statRevenue').textContent = formatPrice(revenue);
+    }
 
-  // Reset chapters
-  document.getElementById('chaptersList').innerHTML = `
-    <div class="chapter-row">
-      <input type="number" class="num" value="1" readonly>
-      <input type="text" placeholder="Titre du chapitre 1" class="chap-title-input">
-      <label class="free-check"><input type="checkbox" checked disabled> Gratuit</label>
-    </div>
-  `;
+    function nouvelleSerie() {
+      editingId = null;
+      document.getElementById('editId').value = '';
+      document.getElementById('editorMode').textContent = 'Nouvelle série';
+      document.getElementById('btnDelete').style.display = 'none';
+      document.getElementById('fTitle').value = '';
+      document.getElementById('fGenre').value = 'action';
+      document.getElementById('fCategory').value = 'popular';
+      document.getElementById('fPrice').value = '';
+      document.getElementById('fRating').value = '4.5';
+      document.getElementById('fCoverUrl').value = '';
+      document.getElementById('fFlipUrl').value = '';
+      document.getElementById('fDescription').value = '';
+      document.getElementById('chaptersList').innerHTML = '<div class="chapter-row"><input type="number" class="num" value="1" readonly><input type="text" placeholder="Titre du chapitre 1" class="chap-title-input"><label class="free-check"><input type="checkbox" checked disabled> Gratuit</label></div>';
+      renderSeriesList();
+      updatePreview();
+    }
 
-  renderSeriesList();
-  updatePreview();
-}
+    function editerSerie(id) {
+      const s = catalogue.series.find(x => x.id === id);
+      if (!s) return;
+      editingId = id;
+      document.getElementById('editId').value = id;
+      document.getElementById('editorMode').textContent = 'Modifier: ' + s.title;
+      document.getElementById('btnDelete').style.display = 'inline-flex';
+      document.getElementById('fTitle').value = s.title || '';
+      document.getElementById('fGenre').value = s.genre || 'action';
+      document.getElementById('fCategory').value = s.category || 'popular';
+      document.getElementById('fPrice').value = s.price || 0;
+      document.getElementById('fRating').value = s.rating || 4.5;
+      document.getElementById('fCoverUrl').value = s.coverUrl || '';
+      document.getElementById('fFlipUrl').value = s.flipUrl || '';
+      document.getElementById('fDescription').value = s.description || '';
+      
+      const chList = s.chapterList || [];
+      if (chList.length === 0) {
+        document.getElementById('chaptersList').innerHTML = '<div class="chapter-row"><input type="number" class="num" value="1" readonly><input type="text" placeholder="Titre du chapitre 1" class="chap-title-input" value="Chapitre 1"><label class="free-check"><input type="checkbox" checked disabled> Gratuit</label></div>';
+      } else {
+        document.getElementById('chaptersList').innerHTML = chList.map((ch, idx) => `
+          <div class="chapter-row">
+            <input type="number" class="num" value="${ch.num}" readonly>
+            <input type="text" placeholder="Titre du chapitre ${ch.num}" class="chap-title-input" value="${esc(ch.title || '')}">
+            <label class="free-check">
+              <input type="checkbox" ${ch.free ? 'checked' : ''} ${idx === 0 ? 'disabled' : ''} class="chap-free-check"> Gratuit
+            </label>
+            ${idx > 0 ? `<button type="button" class="remove-chap" onclick="this.parentElement.remove(); renumChapters(); updatePreview()">&times;</button>` : ''}
+          </div>
+        `).join('');
+      }
+      renderSeriesList();
+      updatePreview();
+    }
 
-function editerSerie(id) {
-  const s = catalogue.series.find(x => x.id === id);
-  if (!s) return;
-
-  editingId = id;
-  document.getElementById('editId').value = id;
-  document.getElementById('editorMode').textContent = 'Modifier: ' + s.title;
-  document.getElementById('btnDelete').style.display = 'inline-flex';
-
-  document.getElementById('fTitle').value = s.title || '';
-  document.getElementById('fGenre').value = s.genre || 'action';
-  document.getElementById('fCategory').value = s.category || 'popular';
-  document.getElementById('fPrice').value = s.price || 0;
-  document.getElementById('fRating').value = s.rating || 4.5;
-  document.getElementById('fCoverUrl').value = s.coverUrl || '';
-  document.getElementById('fFlipUrl').value = s.flipUrl || '';
-  document.getElementById('fDescription').value = s.description || '';
-
-  // Chapters
-  const chList = s.chapterList || [];
-  if (chList.length === 0) {
-    document.getElementById('chaptersList').innerHTML = `
-      <div class="chapter-row">
-        <input type="number" class="num" value="1" readonly>
-        <input type="text" placeholder="Titre du chapitre 1" class="chap-title-input" value="Chapitre 1">
-        <label class="free-check"><input type="checkbox" checked disabled> Gratuit</label>
-      </div>
-    `;
-  } else {
-    document.getElementById('chaptersList').innerHTML = chList.map((ch, idx) => `
-      <div class="chapter-row">
-        <input type="number" class="num" value="${ch.num}" readonly>
-        <input type="text" placeholder="Titre du chapitre ${ch.num}" class="chap-title-input" value="${esc(ch.title || '')}">
+    function ajouterChapitre() {
+      const container = document.getElementById('chaptersList');
+      const rows = container.querySelectorAll('.chapter-row');
+      const nextNum = rows.length + 1;
+      const row = document.createElement('div');
+      row.className = 'chapter-row';
+      row.innerHTML = `
+        <input type="number" class="num" value="${nextNum}" readonly>
+        <input type="text" placeholder="Titre du chapitre ${nextNum}" class="chap-title-input">
         <label class="free-check">
-          <input type="checkbox" ${ch.free ? 'checked' : ''} ${idx === 0 ? 'disabled' : ''} class="chap-free-check"> 
-          ${idx === 0 ? 'Gratuit' : 'Gratuit'}
+          <input type="checkbox" class="chap-free-check"> Gratuit
         </label>
-        ${idx > 0 ? `<button type="button" class="remove-chap" onclick="this.parentElement.remove(); updatePreview();">&times;</button>` : ''}
-      </div>
-    `).join('');
-  }
+        <button type="button" class="remove-chap" onclick="this.parentElement.remove(); renumChapters(); updatePreview()">&times;</button>
+      `;
+      container.appendChild(row);
+      updatePreview();
+    }
 
-  renderSeriesList();
-  updatePreview();
-}
+    function renumChapters() {
+      const rows = document.querySelectorAll('#chaptersList .chapter-row');
+      rows.forEach((row, idx) => {
+        row.querySelector('.num').value = idx + 1;
+        const titleInput = row.querySelector('.chap-title-input');
+        if (!titleInput.value) titleInput.placeholder = `Titre du chapitre ${idx + 1}`;
+      });
+    }
 
-function ajouterChapitre() {
-  const container = document.getElementById('chaptersList');
-  const rows = container.querySelectorAll('.chapter-row');
-  const nextNum = rows.length + 1;
+    function updatePreview() {
+      const title = document.getElementById('fTitle').value || 'Titre de la série';
+      const genre = document.getElementById('fGenre').value;
+      const price = document.getElementById('fPrice').value || 0;
+      const coverUrl = document.getElementById('fCoverUrl').value;
+      const desc = document.getElementById('fDescription').value || 'Synopsis de la série...';
+      const rows = document.querySelectorAll('#chaptersList .chapter-row');
 
-  const row = document.createElement('div');
-  row.className = 'chapter-row';
-  row.innerHTML = `
-    <input type="number" class="num" value="${nextNum}" readonly>
-    <input type="text" placeholder="Titre du chapitre ${nextNum}" class="chap-title-input">
-    <label class="free-check"><input type="checkbox" class="chap-free-check"> Gratuit</label>
-    <button type="button" class="remove-chap" onclick="this.parentElement.remove(); renumChapters(); updatePreview();">&times;</button>
-  `;
-  container.appendChild(row);
-  updatePreview();
-}
+      document.getElementById('previewTitle').textContent = title;
+      document.getElementById('previewMeta').textContent = genre + ' • ' + rows.length + ' chapitre(s)';
+      
+      const priceEl = document.getElementById('previewPrice');
+      if (price == 0) {
+        priceEl.textContent = 'Gratuit';
+        priceEl.style.color = 'var(--success)';
+      } else {
+        priceEl.textContent = formatPrice(price) + ' FCFA';
+        priceEl.style.color = 'var(--accent)';
+      }
+      
+      document.getElementById('previewDesc').textContent = desc;
+      const img = document.getElementById('previewImg');
+      
+      if (coverUrl) {
+        img.src = coverUrl;
+        img.style.display = 'block';
+      } else {
+        img.style.background = '#242424';
+        img.style.display = 'flex';
+        img.style.alignItems = 'center';
+        img.style.justifyContent = 'center';
+        img.src = '';
+        img.alt = 'Aperçu couverture';
+      }
+    }
 
-function renumChapters() {
-  const rows = document.querySelectorAll('#chaptersList .chapter-row');
-  rows.forEach((row, idx) => {
-    row.querySelector('.num').value = idx + 1;
-    const titleInput = row.querySelector('.chap-title-input');
-    if (!titleInput.value) titleInput.placeholder = `Titre du chapitre ${idx + 1}`;
-  });
-}
+    function sauvegarderSerie() {
+      const title = document.getElementById('fTitle').value.trim();
+      const genre = document.getElementById('fGenre').value;
+      const category = document.getElementById('fCategory').value;
+      const price = parseInt(document.getElementById('fPrice').value) || 0;
+      const rating = parseFloat(document.getElementById('fRating').value) || 4.5;
+      const coverUrl = document.getElementById('fCoverUrl').value.trim();
+      const flipUrl = document.getElementById('fFlipUrl').value.trim();
+      const description = document.getElementById('fDescription').value.trim();
 
-// ===== PREVIEW =====
-function updatePreview() {
-  const title = document.getElementById('fTitle').value || 'Titre de la serie';
-  const genre = document.getElementById('fGenre').value;
-  const price = document.getElementById('fPrice').value || 0;
-  const coverUrl = document.getElementById('fCoverUrl').value;
-  const desc = document.getElementById('fDescription').value || 'Synopsis de la serie...';
-  const rows = document.querySelectorAll('#chaptersList .chapter-row');
+      if (!title) { showToast('Le titre est obligatoire.', 'error'); return; }
+      if (!coverUrl) { showToast('Le lien de couverture est obligatoire.', 'error'); return; }
+      if (!flipUrl) { showToast('Le lien AnyFlip est obligatoire.', 'error'); return; }
+      if (!description) { showToast('Le synopsis est obligatoire.', 'error'); return; }
 
-  document.getElementById('previewTitle').textContent = title;
-  document.getElementById('previewMeta').textContent = `${genre} • ${rows.length} chapitre(s)`;
-  document.getElementById('previewPrice').textContent = price == 0 ? 'Gratuit' : `${formatPrice(price)} FCFA`;
-  document.getElementById('previewPrice').style.color = price == 0 ? 'var(--success)' : 'var(--accent)';
-  document.getElementById('previewDesc').textContent = desc;
+      const chapterRows = document.querySelectorAll('#chaptersList .chapter-row');
+      const chapterList = [];
+      chapterRows.forEach((row, idx) => {
+        const titleChap = row.querySelector('.chap-title-input').value.trim() || `Chapitre ${idx + 1}`;
+        const free = idx === 0 ? true : row.querySelector('.chap-free-check')?.checked || false;
+        chapterList.push({ num: idx + 1, title: titleChap, free: free });
+      });
 
-  const img = document.getElementById('previewImg');
-  if (coverUrl) {
-    img.src = coverUrl;
-    img.style.display = 'block';
-  } else {
-    img.style.background = '#242424';
-    img.style.display = 'flex';
-    img.style.alignItems = 'center';
-    img.style.justifyContent = 'center';
-    img.src = '';
-    img.alt = 'Apercu couverture';
-  }
-}
+      const serie = {
+        id: editingId || nextId++,
+        title, genre, category, price, rating, coverUrl, flipUrl, description,
+        chapters: chapterList.length,
+        reviews: 0,
+        chapterList
+      };
 
-// ===== SAVE =====
-function sauvegarderSerie() {
-  const title = document.getElementById('fTitle').value.trim();
-  const genre = document.getElementById('fGenre').value;
-  const category = document.getElementById('fCategory').value;
-  const price = parseInt(document.getElementById('fPrice').value) || 0;
-  const rating = parseFloat(document.getElementById('fRating').value) || 4.5;
-  const coverUrl = document.getElementById('fCoverUrl').value.trim();
-  const flipUrl = document.getElementById('fFlipUrl').value.trim();
-  const description = document.getElementById('fDescription').value.trim();
+      if (editingId) {
+        const idx = catalogue.series.findIndex(s => s.id === editingId);
+        if (idx >= 0) catalogue.series[idx] = serie;
+        showToast('Série mise à jour !', 'success');
+      } else {
+        catalogue.series.push(serie);
+        showToast('Série ajoutée !', 'success');
+      }
 
-  // Validation
-  if (!title) { showToast('Le titre est obligatoire.', 'error'); return; }
-  if (!coverUrl) { showToast('Le lien de couverture est obligatoire.', 'error'); return; }
-  if (!flipUrl) { showToast('Le lien AnyFlip est obligatoire.', 'error'); return; }
-  if (!description) { showToast('Le synopsis est obligatoire.', 'error'); return; }
+      try {
+        localStorage.setItem('fodexxx_admin_catalogue', JSON.stringify(catalogue));
+      } catch (e) {}
 
-  // Collect chapters
-  const chapterRows = document.querySelectorAll('#chaptersList .chapter-row');
-  const chapterList = [];
-  chapterRows.forEach((row, idx) => {
-    const titleChap = row.querySelector('.chap-title-input').value.trim() || `Chapitre ${idx + 1}`;
-    const free = idx === 0 ? true : row.querySelector('.chap-free-check')?.checked || false;
-    chapterList.push({ num: idx + 1, title: titleChap, free: free });
-  });
+      renderSeriesList();
+      updateStats();
+    }
 
-  const serie = {
-    id: editingId || nextId++,
-    title, genre, category, price, rating, coverUrl, flipUrl, description,
-    chapters: chapterList.length,
-    reviews: 0,
-    chapterList
-  };
+    function confirmerSuppression(id) {
+      deleteTargetId = id;
+      const s = catalogue.series.find(x => x.id === id);
+      document.getElementById('confirmText').textContent = `Supprimer « ${s ? s.title : 'cette série'} » ? Cette action est irréversible.`;
+      document.getElementById('confirmBtn').onclick = function () { supprimerSerieConfirm(); };
+      document.getElementById('confirmModal').classList.add('active');
+    }
 
-  if (editingId) {
-    const idx = catalogue.series.findIndex(s => s.id === editingId);
-    if (idx >= 0) catalogue.series[idx] = serie;
-    showToast('Serie mise a jour !', 'success');
-  } else {
-    catalogue.series.push(serie);
-    showToast('Serie ajoutee !', 'success');
-  }
+    function supprimerSerie() {
+      if (!editingId) return;
+      confirmerSuppression(editingId);
+    }
 
-  // Persister dans le stockage local
-  try {
-    localStorage.setItem('fodexxx_admin_catalogue', JSON.stringify(catalogue));
-  } catch(e) {}
+    function supprimerSerieConfirm() {
+      if (!deleteTargetId) return;
+      catalogue.series = catalogue.series.filter(s => s.id !== deleteTargetId);
+      
+      if (editingId === deleteTargetId) {
+        editingId = null;
+        document.getElementById('editId').value = '';
+        document.getElementById('btnDelete').style.display = 'none';
+        document.getElementById('editorMode').textContent = 'Nouvelle série';
+      }
 
-  renderSeriesList();
-  updateStats();
-}
+      deleteTargetId = null;
+      try {
+        localStorage.setItem('fodexxx_admin_catalogue', JSON.stringify(catalogue));
+      } catch (e) {}
 
-// Lancer l'initialisation au chargement de la page
-window.onload = init;
-</script>
+      closeConfirmModal();
+      renderSeriesList();
+      updateStats();
+      showToast('Série supprimée.', 'success');
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('confirmModal').classList.remove('active');
+    }
+
+    function exporterCatalogue() {
+      if (catalogue.series.length === 0) {
+        showToast('Aucune série à exporter.', 'error');
+        return;
+      }
+      const data = {
+        exported_at: new Date().toISOString(),
+        series: catalogue.series
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'data.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('data.json téléchargé !', 'success');
+    }
+
+    function importCatalogue() {
+      document.getElementById('importModal').classList.add('active');
+    }
+
+    function closeImportModal() {
+      document.getElementById('importModal').classList.remove('active');
+    }
+
+    function handleImportFile(input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (!data.series || !Array.isArray(data.series)) {
+            showToast('Format invalide.', 'error');
+            return;
+          }
+          catalogue.series = data.series;
+          nextId = catalogue.series.reduce((max, s) => Math.max(max, s.id || 0), 0) + 1;
+          
+          try {
+            localStorage.setItem('fodexxx_admin_catalogue', JSON.stringify(catalogue));
+          } catch (err) {}
+
+          renderSeriesList();
+          updateStats();
+          closeImportModal();
+          showToast(`${data.series.length} série(s) importée(s) !`, 'success');
+        } catch (err) {
+          showToast('Erreur import: ' + err.message, 'error');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function setupDragDrop() {
+      const zone = document.getElementById('importZone');
+      zone.addEventListener('dragover', e => {
+        e.preventDefault();
+        zone.classList.add('dragover');
+      });
+      zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          document.getElementById('importFile').files = files;
+          handleImportFile({ files: files });
+        }
+      });
+    }
+
+    window.onload = init;
+  </script>
 </body>
 </html>
